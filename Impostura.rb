@@ -96,25 +96,46 @@ size=pagesize()
 wReal=size["ancho"]
 hReal=size["alto"]
 
-#INPUT
 puts "::::::::::::impostor::::::::::::"#blink blink
-STDOUT.puts("w:")
-	w=STDIN.gets.to_i
-STDOUT.puts("h:")
-	h=STDIN.gets.to_i
-STDOUT.puts("W:")
-	W=STDIN.gets.to_i
-STDOUT.puts("H:")
-	H=STDIN.gets.to_i
-STDOUT.puts("nX:")
-	nX=STDIN.gets.to_i
-STDOUT.puts("nY:")
-	nY=STDIN.gets.to_i
-
-STDOUT.puts("nPaginas:")
-	nPaginas=STDIN.gets.to_i
-STDOUT.puts("nPliegos:")
-	nPliegos=STDIN.gets.to_i
+#INPUT
+def input(nombre)
+	retorno=Hash.new
+	STDOUT.puts(nombre)
+	input=STDIN.gets
+	if input[0]==10 then #no input
+		retorno["numero"]=0
+		return retorno		
+	end
+	regex = /(\d+)\s*(\w*)/ #TODO punto flotante
+	split = regex.match(input)
+	if split!=nil then
+		retorno["numero"]=split[1].to_i
+		retorno["unidad"]=split[2]
+		return retorno
+	else
+		puts "la unidad de #{input} no es correcta"
+		input(nombre)
+	end
+end
+	#VARIABLES
+	w=input("w:")
+	h=input("h:")
+	W=input("W:")
+	H=input("H:")
+	nX=input("nX:")
+	nY=input("nY:")
+	nPaginas=input("nPaginas:")
+	nPliegos=input("nPliegos:")
+	
+	#TODO TRATAMIENTO DE UNIDADES ahora que las tengo
+	w=w["numero"]
+	h=h["numero"]
+	W=W["numero"]
+	H=H["numero"]
+	nX=nX["numero"]
+	nY=nY["numero"]
+	nPaginas=nPaginas["numero"]
+	nPliegos=nPliegos["numero"]
 
 #MODELO
 class Mensaje
