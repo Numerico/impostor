@@ -1,3 +1,4 @@
+begin
 #VARS/
 entrada="/home/roberto/Documentos/imPOSTO/input/podofo.pdf"
 salida="/tmp/impostor"
@@ -6,10 +7,14 @@ salida="/tmp/impostor"
 require 'Impostor'
 include Impostor
 
+require 'rubygems'
+require 'alchemist'
+require 'uuidtools'
+
 #CONFIGURACIONES
-#TODO cómo decirselas una sola vez (instalacion)
+#TODO cómo decírselas una sola vez (instalación)
 $requerimientos=Hash.new
-$requerimientos["pdflatex"]="/usr/bin/pdflatex"#podría pasársele el puro comando
+$requerimientos["pdflatex"]="/usr/bin/pdflatex"#TODO podría pasársele el puro comando
 $requerimientos["pdfinfo"]="/usr/bin/pdfinfo"
 #check
 $requerimientos.each do |k,v|
@@ -31,7 +36,7 @@ if File.exists?(salida) then
 	#y que sea escribible
 	if File.writable?(salida) and File.writable_real?(salida) then
 		#creo mi directorio
-		directorio=salida+"/"+"test"#TODO GUID
+		directorio=salida+"/"+UUIDTools::UUID.random_create
 		Dir.mkdir(directorio)
 		Dir.chdir(directorio)
 	else
@@ -64,7 +69,6 @@ end
 $pdfinfo = `#{$requerimientos["pdfinfo"]} -box #{temp}`
 #se ejecuta una sola vez
 def paginasdelpdf()
-	#pdfinfo = `#{$requerimientos["pdfinfo"]} -box #{archivo}`
 	info = $pdfinfo.chomp
 	busca = /pages\s*\:\s*(\d+)/moi
 	pags = busca.match(info)
@@ -78,15 +82,19 @@ def pagesize()
 	busca = /Page size\s*\:\s*([\d\.]+)\s*x\s*([\d\.]+).*/
 	pags = busca.match(info)
 	retorno=Hash.new
-	retorno["ancho"]=pags[1].to_f
-	retorno["alto"]=pags[2].to_f
 	splitted=pags[0].split(" ")
 	unidad=splitted[5]
-		#TODO conversion unidades pdfinfo & pdflatex
+		#unidades pdfinfo 2 alchemist
 		if unidad=="pts" then
-			unidad="pt"
+			unidad="point"
+		#TODO elsif...
+		else#default
+			unidad="point"
 		end
 	retorno["unidad"]=unidad
+	#con unidad
+	retorno["ancho"]=pags[1].to_f.send(unidad)
+	retorno["alto"]=pags[2].to_f.send(unidad)
 	if splitted[6]!=nil then
 		retorno["nombre"]=splitted[6].delete("(").delete(")")
 	end
@@ -98,45 +106,60 @@ hReal=size["alto"]
 
 puts "::::::::::::impostor::::::::::::"#blink blink
 #INPUT
+#TODO validar que unidad exista en alchemist
+def input2alchemist(unidad)
+	if unidad=="pt" or unidad=="pts" then
+		return "point"
+	elsif unidad=="PT" or unidad=="bp" then
+		return "printer_point"
+	else
+		return unidad.downcase
+	end
+end
 def input(nombre)
 	retorno=Hash.new
 	STDOUT.puts(nombre)
 	input=STDIN.gets
 	if input[0]==10 then #no input
-		retorno["numero"]=0
+		retorno["numero"]=0.point
+		retorno["unidad"]="point"#default
 		return retorno		
-	end
-	regex = /(\d+)\s*(\w*)/ #TODO punto flotante
-	split = regex.match(input)
-	if split!=nil then
-		retorno["numero"]=split[1].to_i
-		retorno["unidad"]=split[2]
-		return retorno
 	else
-		puts "la unidad de #{input} no es correcta"
-		input(nombre)
+		regex = /(\d+\.*\d*)\s*(\w*)/
+		split = regex.match(input)
+		if split!=nil then
+			retorno["numero"]=split[1].to_f
+			if split[2]=="" then
+				retorno["unidad"]="point"#default
+			else
+				retorno["unidad"]=input2alchemist(split[2])
+			end
+			return retorno
+		else
+			puts "la unidad de #{input} no es correcta"
+			input(nombre)
+		end
 	end
 end
 	#VARIABLES
-	w=input("w:")
-	h=input("h:")
-	W=input("W:")
-	H=input("H:")
-	nX=input("nX:")
-	nY=input("nY:")
-	nPaginas=input("nPaginas:")
-	nPliegos=input("nPliegos:")
-	
-	#TODO TRATAMIENTO DE UNIDADES ahora que las tengo
-	w=w["numero"]
-	h=h["numero"]
-	W=W["numero"]
-	H=H["numero"]
-	nX=nX["numero"]
-	nY=nY["numero"]
-	nPaginas=nPaginas["numero"]
-	nPliegos=nPliegos["numero"]
-
+	w_=input("w:")
+	h_=input("h:")
+	W_=input("W:")
+	H_=input("H:")
+	nX_=input("nX:")
+	nY_=input("nY:")
+	nPaginas_=input("nPaginas:")
+	nPliegos_=input("nPliegos:")
+	#con unidad
+	w=w_["numero"].send(w_["unidad"])
+	h=h_["numero"].send(h_["unidad"])
+	W=W_["numero"].send(W_["unidad"])
+	H=H_["numero"].send(H_["unidad"])
+	#sin unidad
+	nX=nX_["numero"].to_f.floor
+	nY=nY_["numero"].to_f.floor
+	nPaginas=nPaginas_["numero"].to_f.floor
+	nPliegos=nPliegos_["numero"].to_f.floor
 #MODELO
 class Mensaje
 	attr_reader :level, :mensaje
@@ -250,15 +273,15 @@ class MensajeMedida < Mensaje
 	def deducirMensaje(level, tipo, args)
 		if tipo=="horizontal" then
 			if level==3 then
-				return "no caben #{args[0]} paginas de #{args[1]} de ancho en un pliego de #{args[2]}"
+				return "no caben #{args[0]} paginas de #{args[1]["numero"].to_s+args[1]["unidad"]} de ancho en un pliego de #{args[2]["numero"].to_s+args[2]["unidad"]}"
 			elsif level==2 then
-				return "sobra #{args[0]} de ancho"
+				return "sobra #{args[0].to_s+args[1]} de ancho"
 			end
 		elsif tipo=="vertical" then
 			if level==3 then
-				return "no caben #{args[0]} paginas de #{args[1]} de alto en un pliego de #{args[2]}"
+				return "no caben #{args[0]} paginas de #{args[1]["numero"].to_s+args[1]["unidad"]} de alto en un pliego de #{args[2]["numero"].to_s+args[2]["unidad"]}"
 			elsif level==2 then
-				return "sobra #{args[0]} de alto"
+				return "sobra #{args[0].to_s+args[1]} de alto"
 			end
 		end
 	end
@@ -285,7 +308,7 @@ def escalado(tipo)
 	end
 end
 def todasPag(nPliegos, nX, nY, caben)
-	STDOUT.puts("el pdf tiene #{caben.to_i} paginas, pero en #{nPliegos.to_i} de #{nX.to_i}x#{nY.to_i} caben #{caben.to_i} paginas ¿usar las del pdf? (y/n)")
+	STDOUT.puts("el pdf tiene #{caben.to_i} paginas, pero en #{nPliegos.to_i} de #{nX}x#{nY} caben #{caben.to_i} paginas ¿usar las del pdf? (y/n)")
 		escalar=STDIN.gets.to_s
 	if escalar[0]==121 then#Y
 		return true
@@ -296,10 +319,11 @@ def todasPag(nPliegos, nX, nY, caben)
 	end
 end
 #HORIZONTALMENTE
-if w!=0 then
-	if W!=0 then
+if w!=0.point then
+	if W!=0.point then
 		if nX==0 then
 			nX=(W/w).floor
+			W=W_["numero"].send(W_["unidad"])#operación alchemist cambia el operando
 			if nX==0 then
 				mensajes.push(MensajeDato.new(3, "horizontal", 5))#error
 			else
@@ -307,17 +331,20 @@ if w!=0 then
 			end
 		end
 	elsif nX!=0 then
-		if W==0 then
-			W=nX*w
+		if W==0.point then
+			W_["numero"]=nX*w.to_f#actualiza para no perderlo en operacion de medidas
+			W=W_["numero"].send(w_["unidad"])
+			W_["unidad"]=w_["unidad"]
 			mensajes.push(MensajeDato.new(1, "horizontal", 2))#info
 		end
 	else
 		mensajes.push(MensajeDato.new(3, "horizontal", 1))#error
 	end
-elsif W!=0 then
-	if w!=0 then#imposible?
+elsif W!=0.point then
+	if w!=0.point then#imposible?
 		if nX==0 then
 			nX=(W/w).floor
+			W=W_["numero"].send(W_["unidad"])
 			if nX==0 then
 				mensajes.push(MensajeDato.new(3, "horizontal", 5))#error
 			else
@@ -325,19 +352,23 @@ elsif W!=0 then
 			end
 		end
 	elsif nX!=0 then
-		if w==0 then#obvio!
+		if w==0.point then#obvio!
 			if escalado("horizontalmente") then
-				w=W/nX
+				w=(W.to_f/nX).send(W_["unidad"])
+				w_["unidad"]=W_["unidad"]
 				mensajes.push(MensajeDato.new(1, "horizontal", 3))#info
 			else
 				w=wReal
+				w_["unidad"]=size["unidad"]
 				mensajes.push(MensajeDato.new(1, "horizontal", 4))#info
 			end
 		end
 	else	
 		w=wReal
+		w_["unidad"]=size["unidad"]
 		mensajes.push(MensajeDato.new(1, "horizontal", 4))#info
 		nX=(W/w).floor
+		W=W_["numero"].send(W_["unidad"])
 		if nX==0 then
 			mensajes.push(MensajeDato.new(1, "horizontal", 5))#error
 		else	
@@ -345,35 +376,43 @@ elsif W!=0 then
 		end
 	end
 elsif nX!=0 then
-	if W!=0 then#imposible?
-		if w==0 then
+	if W!=0.point then#imposible?
+		if w==0.point then
 			if escalado("verticalmente") then
-				w=W/nX
+				w=(W.to_f/nX).send(W_["unidad"])
+				w_["unidad"]=W_["unidad"]
 				mensajes.push(MensajeDato.new(1, "horizontal", 3))#info
 			else
 				w=wReal
+				w_["unidad"]=size["unidad"]
 				mensajes.push(MensajeDato.new(1, "horizontal", 4))#info
 			end
 		end
-	elsif w!=0 then#imposible?
-		if W==0 then
-			W=nX*w
+	elsif w!=0.point then#imposible?
+		if W==0.point then
+			W_["numero"]=nX*w.to_f
+			W=W_["numero"].send(w_["unidad"])
+			W_["unidad"]=w_["unidad"]
 			mensajes.push(MensajeDato.new(1, "horizontal", 2))#info
 		end
 	else
 		w=wReal
+		w_["unidad"]=size["unidad"]
 		mensajes.push(MensajeDato.new(1, "horizontal", 4))#info
-		W=nX*w
+		W_["numero"]=nX*w.to_f
+		W=W_["numero"].send(w_["unidad"])
+		W_["unidad"]=w_["unidad"]
 		mensajes.push(MensajeDato.new(1, "horizontal", 2))#info
 	end
 else
 	mensajes.push(MensajeDato.new(3, "horizontal", 4))#error
 end
 #VERTICALMENTE
-if h!=0 then
-	if H!=0 then
+if h!=0.point then
+	if H!=0.point then
 		if nY==0 then
 			nY=(H/h).floor
+			H=H_["numero"].send(H_["unidad"])
 			if nY==0 then
 				mensajes.push(MensajeDato.new(3, "vertical", 5))#error
 			else	
@@ -381,17 +420,20 @@ if h!=0 then
 			end
 		end
 	elsif nY!=0 then
-		if H==0 then
-			H=nY*h
+		if H==0.point then
+			H_["numero"]=nY*h.to_f
+			H=H_["numero"].send(h_["unidad"])
+			H_["unidad"]=h_["unidad"]
 			mensajes.push(MensajeDato.new(1, "vertical", 2))#info
 		end
 	else
 		mensajes.push(MensajeDato.new(3, "vertical", 1))#error
 	end
-elsif H!=0 then
-	if h!=0 then
+elsif H!=0.point then
+	if h!=0.point then
 		if nY==0 then
 			nY=(H/h).floor
+			H=H_["numero"].send(H_["unidad"])
 			if nY==0 then
 				mensajes.push(MensajeDato.new(1, "vertical", 5))#error
 			else
@@ -399,20 +441,24 @@ elsif H!=0 then
 			end
 		end
 	elsif nY!=0 then
-		if h==0 then
+		if h==0.point then
 			if escalado("verticalmente") then
-				h=H/nY
+				h=(H.to_f/nY).send(H_["unidad"])
+				h_["unidad"]=H_["unidad"]
 				mensajes.push(MensajeDato.new(1, "vertical", 3))#info
 			else
 				h=hReal
+				h_["unidad"]=size["unidad"]
 				mensajes.push(MensajeDato.new(1, "vertical", 4))#info
 			end
 		end
 	else
 		#deducimos del pdf no mas
 		h=hReal
+		h_["unidad"]=size["unidad"]
 		mensajes.push(MensajeDato.new(1, "vertical", 4))#info
 		nY=(H/h).floor
+		H=H_["numero"].send(H_["unidad"])
 		if nY==0 then
 			mensajes.push(MensajeDato.new(3, "vertical", 5))#error
 		else
@@ -420,43 +466,56 @@ elsif H!=0 then
 		end
 	end
 elsif nY!=0 then
-	if H!=0 then
-		if h==0 then
+	if H!=0.point then
+		if h==0.point then
 			if escalado("verticalmente") then
-				h=H/nY
+				h=(H.to_f/nY).send(H_["unidad"])
+				h_["unidad"]=H_["unidad"]
 				mensajes.push(MensajeDato.new(1, "vertical", 3))#info
 			else
 				h=hReal
+				h_["unidad"]=size["unidad"]
 				mensajes.push(MensajeDato.new(1, "vertical", 4))#info
 			end
 		end
-	elsif h!=0 then
-		if H==0 then
-			H=nY*h
+	elsif h!=0.point then
+		if H==0.point then
+			H_["numero"]=nY*h.to_f
+			H=H_["numero"].send(h_["unidad"])
+			H_["unidad"]=h_["unidad"]
 			mensajes.push(MensajeDato.new(1, "vertical", 2))#info
 		end
 	else
 		h=hReal
+		h_["unidad"]=size["unidad"]
 		mensajes.push(MensajeDato.new(1, "vertical", 4))#info
-		H=nY*h
+		H_["numero"]=nY*h.to_f
+		H=H_["numero"].send(h_["unidad"])
+		H_["unidad"]=h_["unidad"]
 		mensajes.push(MensajeDato.new(1, "vertical", 2))#info
-			#mensajes.push(MensajeDato.new(3, "vertical", 3))#error
 	end
 else
 	mensajes.push(MensajeDato.new(3, "vertical", 4))#error
 end
 #MEDIDAS
-if nX*w>W then
-	mensajes.push(MensajeMedida.new(3, "horizontal", [nX, w, W]))#error
-elsif nX>0 and nX*w<W then
-	sobra=W-(nX*w)
-	mensajes.push(MensajeMedida.new(2, "horizontal", [sobra]))#warn
+def redondear(n)#TODO por BUG de alchemist (ruby 1.9 tiene round(3))
+	(n*1000).round/1000
 end
-if nY*h>H then
-	mensajes.push(MensajeMedida.new(3, "vertical", [nY, h, H]))#error
-elsif nY>0 and nY*h<H then
-	sobra=H-(nY*h)
-	mensajes.push(MensajeMedida.new(2, "vertical", [sobra]))#warn
+#if (nX*w.to_f).send(w_["unidad"]) > W then
+if redondear(nX*w.to_f) > redondear(W.to(w_["unidad"]).to_f) then
+	mensajes.push(MensajeMedida.new(3, "horizontal", [nX, w_, W_]))#error
+elsif nX>0 and (nX*w.to_f).send(w_["unidad"]) < W then
+	sobra=W-(nX*w.to_f).send(w_["unidad"])
+	W=W_["numero"].send(W_["unidad"])
+	mensajes.push(MensajeMedida.new(2, "horizontal", [sobra, W_["unidad"]]))#warn
+end
+#if (nY*h.to_f).send(h_["unidad"]) > H then
+if redondear(nY*h.to_f) > redondear(H.to(h_["unidad"]).to_f) then
+	mensajes.push(MensajeMedida.new(3, "vertical", [nY, h_, H_]))#error
+elsif nY>0 and (nY*h.to_f).send(h_["unidad"]) < H then
+	sobra=H-(nY*h.to_f).send(h_["unidad"])
+	H=H_["numero"].send(H_["unidad"])
+	mensajes.push(MensajeMedida.new(2, "vertical", [sobra, H_["unidad"]]))#warn
 end
 #PAGINAS
 if nPaginas==0 then
@@ -526,15 +585,42 @@ else
 	puts "nY:"+nY.to_s
 	puts "nPaginas:"+nPaginasMult.to_s
 	puts "nPliegos:"+nPliegos.to_s
-	puts "ancho:"+w.to_s
-	puts "alto:"+h.to_s
-	puts "anchoPliego:"+W.to_s
-	puts "altoPliego:"+H.to_s
+	puts "ancho:"+w.to_s+" "+w_["unidad"]
+	puts "alto:"+h.to_s+" "+h_["unidad"]
+	puts "anchoPliego:"+W.to_s+" "+W_["unidad"]
+	puts "altoPliego:"+H.to_s+" "+H_["unidad"]
 
-	#tIni=Time.now
-
+	#conversion unidades alchemy 2 pdflatex
+	def pdflatexUnit(x, unidad)
+		if unidad=="point" then
+			return [x,"pt"]
+		elsif unidad=="printer_point" then
+			return [x,"bp"]
+		elsif unidad=="m" then
+			x=x.to.cm
+			return [x,"cm"]
+		elsif unidad=="inch" then
+			return [x, "in"]
+		#TODO elsif...
+		else
+			return [x,unidad]
+		end
+	end
+	WC=pdflatexUnit(W, W_["unidad"])
+	W=WC[0]
+	W_["unidad"]=WC[1]
+	HC=pdflatexUnit(H, H_["unidad"])
+	H=HC[0]
+	H_["unidad"]=HC[1]
+	wC=pdflatexUnit(w, w_["unidad"])
+	w=wC[0]
+	w_["unidad"]=wC[1]
+	hC=pdflatexUnit(h, h_["unidad"])
+	h=hC[0]
+	h_["unidad"]=hC[1]
+	
 	#las paginas que no existen se dejan en blanco
-	cS=cutStack(nX,nY,nPaginasMult,nPliegos,w,h)
+	cS=cutStack(nX,nY,nPaginasMult,nPliegos,w.to_f,h.to_f)
 	for i in 0...cS.size
 		if cS[i].to_i > nPaginas then
 			cS[i]="{}"
@@ -548,7 +634,7 @@ else
 		cutStack.puts "\\usepackage{pdfpages}"
 		cutStack.puts "\\usepackage{geometry}"
 		cutStack.puts "\\geometry{"
-		cutStack.puts "papersize={#{W}#{size["unidad"]},#{H}#{size["unidad"]}},"#TODO MANEJO UNIDADES
+		cutStack.puts "papersize={#{W}#{W_["unidad"]},#{H}#{H_["unidad"]}},"
 		cutStack.puts "left=0mm,"#posibilidad de márgenes
 		cutStack.puts "right=0mm,"
 		cutStack.puts "top=0mm,"
@@ -560,7 +646,7 @@ else
 		cutStack.puts "marginpar=0mm"
 		cutStack.puts "}"
 		cutStack.puts "\\begin{document}"
-		cutStack.puts "\\includepdf[pages={#{cS}},nup=#{nX}x#{nY},noautoscale, frame, width=#{w}pt, height=#{h}pt]{#{temp}}"#TODO MANEJO UNIDADES
+		cutStack.puts "\\includepdf[pages={#{cS}},nup=#{nX}x#{nY},noautoscale, frame, width=#{w}#{w_["unidad"]}, height=#{h}#{h_["unidad"]}]{#{temp}}"
 		cutStack.puts "\\end{document}"
 	end
 	
@@ -569,12 +655,14 @@ else
 	tFin=Time.now
 	t=tFin-tIni
 	puts t.to_s+" segundos"
-
 	#lo devuelvo
 	FileUtils.mv(directorio+"/"+"cutStack.pdf", entrada)
-	#limpio todo, TODO aunque se caiga
-	Dir.delete(directorio)
-	#GAME OVER
+	
 end
 
+ensure
+#limpio todo, aunque se caiga
+`rm -r #{directorio}`
+#GAME OVER
+end
 
