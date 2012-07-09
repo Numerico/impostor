@@ -5,6 +5,8 @@ salida="/tmp/impostor"
 #links
 require 'Impostor'
 include Impostor
+require 'Cocido'
+include Cocido
 
 #CONFIGURACIONES
 #TODO cómo decirselas una sola vez (instalacion)
@@ -137,131 +139,45 @@ end
 	nPaginas=nPaginas["numero"]
 	nPliegos=nPliegos["numero"]
 
-#MODELO
-class Mensaje
-	attr_reader :level, :mensaje
-	def initialize(level, mensaje)
-		@level=level #1=info, 2=warn, 3=error
-		@mensaje=mensaje
+#cuadernitos
+def enBooklets()
+	STDOUT.puts("¿imponer en cuadernillos? (y/n)")
+		bookies=STDIN.gets.to_s
+	if bookies[0]==121 then#Y
+		return true
+	elsif bookies[0]==110 then#N
+		return false
+	else
+		enBooklets()
 	end
-	def to_s
-		if @level==1 then
-			@retorno="info: "
-		elsif @level==2 then
-			@retorno="warn: "
-		elsif @level==3 then
-			@retorno="ERROR: "
-		end
-		@retorno+=@mensaje
-		return @retorno
-	end 
 end
-class MensajeDato < Mensaje
-	attr_reader :tipo, :numero
-	def initialize(level, tipo, numero)
-		@tipo=tipo
-		@numero=numero
-		@mensaje=deducirMensaje(tipo,level,numero)
-		super(level, @mensaje)
+def exigePar(nX)
+	puts "para imponer en cuadernillos tienen que caber horizontalmente en numeros pares pero ud especifico nX:#{nX}."
+	nX=input("nX:")
+	nX=nX["numero"]
+	if nX%2!=0 then
+		exigePar(nX)
 	end
+	return nX 		
+end
 
-	def deducirMensaje(tipo, level, numero)
-		if tipo=="horizontal" then
-			if level==1 then#info
-				if numero==1 then
-					return "se calcula la cantidad de paginas por pliego horizontalmente en base al ancho del pliego y el de la pagina"
-				elsif numero==2 then
-					return "se calcula el ancho del pliego en base al de la pagina y la cantidad de paginas por pliego horizontalmente"
-				elsif numero==3 then
-					return "se calcula el ancho de la pagina en base al del pliego y la cantidad de paginas por pliego horizontalmente"
-				elsif numero==4 then
-					return "se toma el ancho real de la pagina"
-				end
-			elsif level==3 then#error
-				if numero==1 then
-					return "ha especificado ancho de pagina pero no de pliego ni cuantas paginas por pliego horizontalmente"
-				elsif numero==2 then
-					return "ha especificado ancho de pliego pero no de pagina ni cuantas paginas por pliego horizontalmente"
-				elsif numero==3 then
-					return "ha especificado cuantas paginas por pliego horizontalmente pero no ancho de pagina ni de pliego"
-				elsif numero==4 then
-					return "no ha especificado ni ancho de pagina, ni ancho de pliego, ni cuantos paginas por pliego horizontalmente"
-				elsif numero==5 then
-					return "no cabe ninguna pagina horizontalmente"
-				end
-			end
-		elsif tipo=="vertical" then
-			if level==1 then#info
-				if numero==1 then
-					return "se calcula la cantidad de paginas por pliego verticalmente en base al alto del pliego y el de la pagina"
-				elsif numero==2 then
-					return "se calcula el alto del pliego en base al de la pagina y la cantidad de paginas por pliego verticalmente"
-				elsif numero==3 then
-					return "se calcula el alto de la pagina en base al del pliego y la cantidad de paginas por pliego verticalmente"
-				elsif numero==4 then
-					return "se toma el alto real de la pagina"
-				end
-			elsif level==3 then#error
-				if numero==1 then
-					return "ha especificado alto de pagina pero no de pliego ni cuantas paginas por pliego verticalmente"
-				elsif numero==2 then
-					return "ha especificado alto de pliego pero no de pagina ni cuantas paginas por pliego verticalmente"
-				elsif numero==3 then
-					return "ha especificado cuantas paginas por pliego verticalmente pero no alto de pagina ni de pliego"
-				elsif numero==4 then
-					return "no ha especificado ni alto de pagina, ni alto de pliego, ni cuantos paginas por pliego verticalmente"
-				elsif numero==5 then
-					return "no cabe ninguna pagina verticalmente"
-				end
-			end
-		elsif tipo=="paginas" then
-			if level==1 then
-				if numero==1 then
-					return "se calcula el numero de paginas a partir del numero de pliegos y de la cantidad de paginas por pliego"
-				elsif numero==2 then
-					return "se calcula el numero de pliegos a partir del numero de paginas y de la cantidad de paginas por pliego"
-				elsif numero==3 then
-					return "se usan todas las paginas del pdf"
-				end
-			elsif level==3 then
-				if numero==1 then
-					return "esta especificando mas paginas de las que tiene el documento"
-				else
-					return "no ha especificado numero de paginas ni de pliegos"
-				end
-			end
-		elsif tipo=="pliegos" then
-			if level==1 then
-				return "se toman los #{numero} pliegos necesarios"
-			elsif level==2 then
-				return "sobran #{numero} pliegos"
-			elsif level==3 then
-				return "faltan #{numero} pliegos"	
-			end
-		end
+cuadernillos = enBooklets()
+if cuadernillos then
+	#unidades
+	if nX%2!=0 then
+		nX=exigePar(nX) #TODO sugerencia si + o -
+	end
 	
-	end
-end
-class MensajeMedida < Mensaje
-	def initialize(level, tipo, args)
-		@mensaje=deducirMensaje(level, tipo, args)
-		super(level, @mensaje)
-	end
-	def deducirMensaje(level, tipo, args)
-		if tipo=="horizontal" then
-			if level==3 then
-				return "no caben #{args[0]} paginas de #{args[1]} de ancho en un pliego de #{args[2]}"
-			elsif level==2 then
-				return "sobra #{args[0]} de ancho"
-			end
-		elsif tipo=="vertical" then
-			if level==3 then
-				return "no caben #{args[0]} paginas de #{args[1]} de alto en un pliego de #{args[2]}"
-			elsif level==2 then
-				return "sobra #{args[0]} de alto"
-			end
-		end
-	end
+	#TODO COSTURAS en total
+	puts "Cuadernillos por Costura -cXC- (0->todos unos dentro de otros, 1->todos uno al lado de otro o n-> de a n cuadernillos uno dentro de otro)"
+	cuadernillosPorCostura=input("cXC:")
+	cuadernillosPorCostura=cuadernillosPorCostura["numero"]
+
+	nX=nX/2
+	puts "como imponemos en cuadernillos, tomamos la mitad de paginas horizontalmente"#TODO mensaje, quizas para una interfaz explicitar mas
+	w=w*2
+	puts "como imponemos en cuadernillos, tomamos una pagina del doble de ancho"
+
 end
 
 ###########
@@ -315,27 +231,22 @@ if w!=0 then
 		mensajes.push(MensajeDato.new(3, "horizontal", 1))#error
 	end
 elsif W!=0 then
-	if w!=0 then#imposible?
-		if nX==0 then
-			nX=(W/w).floor
-			if nX==0 then
-				mensajes.push(MensajeDato.new(3, "horizontal", 5))#error
-			else
-				mensajes.push(MensajeDato.new(1, "horizontal", 1))#info
+	if nX!=0 then
+		if escalado("horizontalmente") then
+			w=W/nX
+			mensajes.push(MensajeDato.new(1, "horizontal", 3))#info
+		else
+			w=wReal
+			if cuadernillos then
+				w=w*2
 			end
-		end
-	elsif nX!=0 then
-		if w==0 then#obvio!
-			if escalado("horizontalmente") then
-				w=W/nX
-				mensajes.push(MensajeDato.new(1, "horizontal", 3))#info
-			else
-				w=wReal
-				mensajes.push(MensajeDato.new(1, "horizontal", 4))#info
-			end
+			mensajes.push(MensajeDato.new(1, "horizontal", 4))#info
 		end
 	else	
 		w=wReal
+		if cuadernillos then
+			w=w*2
+		end
 		mensajes.push(MensajeDato.new(1, "horizontal", 4))#info
 		nX=(W/w).floor
 		if nX==0 then
@@ -345,27 +256,13 @@ elsif W!=0 then
 		end
 	end
 elsif nX!=0 then
-	if W!=0 then#imposible?
-		if w==0 then
-			if escalado("verticalmente") then
-				w=W/nX
-				mensajes.push(MensajeDato.new(1, "horizontal", 3))#info
-			else
-				w=wReal
-				mensajes.push(MensajeDato.new(1, "horizontal", 4))#info
-			end
-		end
-	elsif w!=0 then#imposible?
-		if W==0 then
-			W=nX*w
-			mensajes.push(MensajeDato.new(1, "horizontal", 2))#info
-		end
-	else
-		w=wReal
-		mensajes.push(MensajeDato.new(1, "horizontal", 4))#info
-		W=nX*w
-		mensajes.push(MensajeDato.new(1, "horizontal", 2))#info
+	w=wReal
+	if cuadernillos then
+		w=w*2
 	end
+	mensajes.push(MensajeDato.new(1, "horizontal", 4))#info
+	W=nX*w
+	mensajes.push(MensajeDato.new(1, "horizontal", 2))#info
 else
 	mensajes.push(MensajeDato.new(3, "horizontal", 4))#error
 end
@@ -478,6 +375,14 @@ if nPaginas==0 then
 		mensajes.push(MensajeDato.new(1, "paginas", 3))#info
 	end
 end
+#unidad y orden (parece lema patrio)
+if cuadernillos then
+	bookletz=booklets(cuadernillosPorCostura, nPaginas)
+	nPaginas=bookletz.length/2
+	puts "si cada pagina es un cuadernillo serian #{nPaginas}p"#TODO mensaje
+	#pdflatex
+	imponerBooklet(directorio, bookletz.join(","), temp, $requerimientos, w, h, size)
+end
 #nPaginas multiplo de nX*nY
 if nX*nY!=0 and nPaginas%(nX*nY)!=0 then
 	nPaginasMult=(nPaginas/(nX*nY)+1)*(nX*nY)
@@ -568,7 +473,7 @@ else
 	pdflatex=`#{$requerimientos["pdflatex"]} #{cutted}`
 	tFin=Time.now
 	t=tFin-tIni
-	puts t.to_s+" segundos"
+	puts "cut&Stack: "+t.to_s+" segundos"
 
 	#lo devuelvo
 	FileUtils.mv(directorio+"/"+"cutStack.pdf", entrada)
