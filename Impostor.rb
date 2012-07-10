@@ -243,15 +243,15 @@ class MensajeMedida < Mensaje
 	def deducirMensaje(level, tipo, args)
 		if tipo=="horizontal" then
 			if level==3 then
-				return "no caben #{args[0]} paginas de #{args[1]} de ancho en un pliego de #{args[2]}"
+				return "no caben #{args[0]} paginas de #{args[1]["numero"].to_s+args[1]["unidad"]} de ancho en un pliego de #{args[2]["numero"].to_s+args[2]["unidad"]}"
 			elsif level==2 then
-				return "sobra #{args[0]} de ancho"
+				return "sobra #{args[0].to_s+args[1]} de ancho"
 			end
 		elsif tipo=="vertical" then
 			if level==3 then
-				return "no caben #{args[0]} paginas de #{args[1]} de alto en un pliego de #{args[2]}"
+				return "no caben #{args[0]} paginas de #{args[1]["numero"].to_s+args[1]["unidad"]} de alto en un pliego de #{args[2]["numero"].to_s+args[2]["unidad"]}"
 			elsif level==2 then
-				return "sobra #{args[0]} de alto"
+				return "sobra #{args[0].to_s+args[1]} de alto"
 			end
 		end
 	end

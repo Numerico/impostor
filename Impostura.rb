@@ -200,6 +200,7 @@ if cuadernillos then
 	nX=nX/2
 	puts "como imponemos en cuadernillos, tomamos la mitad de paginas horizontalmente"#TODO mensaje, quizas para una interfaz explicitar mas
 	w=w*2
+	w_["numero"]=w
 	puts "como imponemos en cuadernillos, tomamos una pagina del doble de ancho"
 
 end
@@ -267,6 +268,7 @@ elsif W!=0.point then
 			w=wReal
 			if cuadernillos then
 				w=w*2
+				w_["numero"]=w
 			end
 			w_["unidad"]=size["unidad"]
 			mensajes.push(MensajeDato.new(1, "horizontal", 4))#info
@@ -276,6 +278,7 @@ elsif W!=0.point then
 		w=wReal
 		if cuadernillos then
 			w=w*2
+			w_["numero"]=w
 		end
 		w_["unidad"]=size["unidad"]
 		mensajes.push(MensajeDato.new(1, "horizontal", 4))#info
@@ -291,6 +294,7 @@ elsif nX!=0 then
 	w=wReal
 	if cuadernillos then
 		w=w*2
+		w_["numero"]=w
 	end
 	w_["unidad"]=size["unidad"]
 	mensajes.push(MensajeDato.new(1, "horizontal", 4))#info
@@ -437,7 +441,7 @@ if cuadernillos then
 	nPaginas=bookletz.length/2
 	puts "si cada pagina es un cuadernillo serian #{nPaginas}p"#TODO mensaje
 	#pdflatex
-	imponerBooklet(directorio, bookletz.join(","), temp, $requerimientos, w, h, size)
+	imponerBooklet(directorio, bookletz.join(","), temp, $requerimientos, w_, h_)##TODO ya viene doblado? debiera...
 end
 #nPaginas multiplo de nX*nY
 if nX*nY!=0 and nPaginas%(nX*nY)!=0 then
@@ -560,12 +564,10 @@ else
 
 	#lo devuelvo
 	FileUtils.mv(directorio+"/"+"cutStack.pdf", entrada)
-	
 end
 
 ensure
 #limpio todo, aunque se caiga
 `rm -r #{directorio}`
-#GAME OVER
 end
-
+#GAME OVER

@@ -15,6 +15,10 @@ end
 
 #crea un cuadernillo
 def unaDentroDeOtra(paginasReal, paginasEnCuadernillo, inicio, fin)
+	#llegan como float
+	inicio=inicio.to_i
+	fin=fin.to_i
+	
 	arreglo=[]
 	for i in 0...paginasEnCuadernillo/2
 		if (i+1)%2!=0 then
@@ -85,14 +89,15 @@ def reducirUltimo(cuadernillosPorCostura, x, p, x2)
 	end
 end
 
-def imponerBooklet(directorio, ordenBook, archivo, requerimientos, wP, hP, size)#TODO W_
+def imponerBooklet(directorio, ordenBook, archivo, requerimientos, w_, h_)
+	wDummy=w_["numero"].to_f#bug alchemist
 	pierpa=directorio+"/"+"booKlet.tex"
 	File.open(pierpa, 'w') do |booklet|
 		booklet.puts "\\documentclass{report}"
 		booklet.puts "\\usepackage{pdfpages}"
 		booklet.puts "\\usepackage{geometry}"
 		booklet.puts "\\geometry{"
-		booklet.puts "papersize={#{wP}#{size["unidad"]},#{hP}#{size["unidad"]}},"#TODO MANEJO UNIDADES
+		booklet.puts "papersize={#{w_["numero"]}#{h_["unidad"]},#{h_["numero"]}#{h_["unidad"]}},"
 		booklet.puts "left=0mm,"#posibilidad de márgenes
 		booklet.puts "right=0mm,"
 		booklet.puts "top=0mm,"
@@ -104,7 +109,7 @@ def imponerBooklet(directorio, ordenBook, archivo, requerimientos, wP, hP, size)
 		booklet.puts "marginpar=0mm"
 		booklet.puts "}"
 		booklet.puts "\\begin{document}"
-		booklet.puts "\\includepdf[pages={#{ordenBook}},nup=2x1,noautoscale]{#{archivo}}"
+		booklet.puts "\\includepdf[pages={#{ordenBook}},nup=2x1,noautoscale,width=#{wDummy/2}#{w_["unidad"]}, height=#{h_["numero"]}#{h_["unidad"]}]{#{archivo}}"
 		booklet.puts "\\end{document}"
 	end
 	tIni=Time.now
@@ -112,6 +117,7 @@ def imponerBooklet(directorio, ordenBook, archivo, requerimientos, wP, hP, size)
 	tFin=Time.now
 	t=tFin-tIni
 	puts "booklets: "+t.to_s+" segundos"
+
 	#lo devuelvo
 	FileUtils.mv(directorio+"/"+"booKlet.pdf", archivo)
 end
