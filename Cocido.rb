@@ -90,6 +90,14 @@ def reducirUltimo(cuadernillosPorCostura, x, p, x2)
 end
 
 def imponerBooklet(directorio, ordenBook, archivo, requerimientos, w_, h_)
+	#unidades latex
+	wC=pdflatexUnit(w_["numero"], w_["unidad"])
+	w=wC[0]
+	w_["unidad"]=wC[1]
+	hC=pdflatexUnit(h_["numero"], h_["unidad"])
+	h=hC[0]
+	h_["unidad"]=hC[1]
+
 	wDummy=w_["numero"].to_f#bug alchemist
 	pierpa=directorio+"/"+"booKlet.tex"
 	File.open(pierpa, 'w') do |booklet|

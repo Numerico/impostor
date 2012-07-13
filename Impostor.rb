@@ -256,5 +256,25 @@ class MensajeMedida < Mensaje
 		end
 	end
 end
+
+#METODOS
+
+#conversion unidades alchemy 2 pdflatex
+def pdflatexUnit(x, unidad)
+	if unidad=="point" then
+		return [x,"pt"]
+	elsif unidad=="printer_point" then
+		return [x,"bp"]
+	elsif unidad=="m" then
+		x=x.to.cm
+		return [x,"cm"]
+	elsif unidad=="inch" then
+		return [x, "in"]
+	#TODO elsif...
+	else
+		return [x,unidad]
+	end
+end
+
 end#fin módulo
 

@@ -1,7 +1,8 @@
 begin
+
 #VARS/
-entrada="/home/roberto/Documentos/imPOSTO/input/podofo.pdf"
-salida="/tmp/impostor"
+entrada=ARGV.shift
+salida=ARGV.shift
 
 #links
 require 'Impostor'
@@ -15,6 +16,7 @@ require 'uuidtools'
 
 #CONFIGURACIONES
 #TODO cómo decírselas una sola vez (instalación)
+work="/tmp/impostor"
 $requerimientos=Hash.new
 $requerimientos["pdflatex"]="/usr/bin/pdflatex"#TODO podría pasársele el puro comando
 $requerimientos["pdfinfo"]="/usr/bin/pdfinfo"
@@ -33,28 +35,28 @@ end
 
 #ARCHIVOS
 require 'fileutils'
-#probamos que exista la salida
-if File.exists?(salida) then
+#probamos que exista el directorio de trabajo
+if File.exists?(work) then
 	#y que sea escribible
-	if File.writable?(salida) and File.writable_real?(salida) then
+	if File.writable?(work) and File.writable_real?(work) then
 		#creo mi directorio
-		directorio=salida+"/"+UUIDTools::UUID.random_create
+		directorio=work+"/"+UUIDTools::UUID.random_create
 		Dir.mkdir(directorio)
 		Dir.chdir(directorio)
 	else
-	puts salida+" no se puede escribir"
+	puts work+" no se puede escribir"
 	end	
 else
-puts salida+ " no existe"
+puts work+ " no existe"
 exit
 end
-#y la entrada (triunfal)
+#y la entrada
 if File.file?(entrada) then
 	if File.owned?(entrada) then
 		busca = /.*(.pdf)/
 		if busca.match(File.basename(entrada)) then
 			temp=directorio+"/"+File.basename(entrada)#me lo llevo
-			FileUtils.mv(entrada, temp)
+			FileUtils.cp(entrada, temp)
 		else
 		puts entrada+" no es pdf"
 		exit
@@ -200,6 +202,7 @@ if cuadernillos then
 	nX=nX/2
 	puts "como imponemos en cuadernillos, tomamos la mitad de paginas horizontalmente"#TODO mensaje, quizas para una interfaz explicitar mas
 	w=w*2
+
 	w_["numero"]=w
 	puts "como imponemos en cuadernillos, tomamos una pagina del doble de ancho"
 
@@ -262,6 +265,7 @@ elsif W!=0.point then
 	if nX!=0 then
 		if escalado("horizontalmente") then
 			w=(W.to_f/nX).send(W_["unidad"])
+			w_["numero"]=w
 			w_["unidad"]=W_["unidad"]
 			mensajes.push(MensajeDato.new(1, "horizontal", 3))#info
 		else
@@ -328,7 +332,7 @@ if h!=0.point then
 		mensajes.push(MensajeDato.new(3, "vertical", 1))#error
 	end
 elsif H!=0.point then
-	if h!=0.point then
+	if h!=0.point then#imposible
 		if nY==0 then
 			nY=(H/h).floor
 			H=H_["numero"].send(H_["unidad"])
@@ -339,9 +343,10 @@ elsif H!=0.point then
 			end
 		end
 	elsif nY!=0 then
-		if h==0.point then
+		if h==0.point then#obvio
 			if escalado("verticalmente") then
 				h=(H.to_f/nY).send(H_["unidad"])
+				h_["numero"]=h
 				h_["unidad"]=H_["unidad"]
 				mensajes.push(MensajeDato.new(1, "vertical", 3))#info
 			else
@@ -364,7 +369,7 @@ elsif H!=0.point then
 		end
 	end
 elsif nY!=0 then
-	if H!=0.point then
+	if H!=0.point then#imposible
 		if h==0.point then
 			if escalado("verticalmente") then
 				h=(H.to_f/nY).send(H_["unidad"])
@@ -376,7 +381,7 @@ elsif nY!=0 then
 				mensajes.push(MensajeDato.new(1, "vertical", 4))#info
 			end
 		end
-	elsif h!=0.point then
+	elsif h!=0.point then#imposible
 		if H==0.point then
 			H_["numero"]=nY*h.to_f
 			H=H_["numero"].send(h_["unidad"])
@@ -496,22 +501,6 @@ else
 	puts "anchoPliego:"+W.to_s+" "+W_["unidad"]
 	puts "altoPliego:"+H.to_s+" "+H_["unidad"]
 
-	#conversion unidades alchemy 2 pdflatex
-	def pdflatexUnit(x, unidad)
-		if unidad=="point" then
-			return [x,"pt"]
-		elsif unidad=="printer_point" then
-			return [x,"bp"]
-		elsif unidad=="m" then
-			x=x.to.cm
-			return [x,"cm"]
-		elsif unidad=="inch" then
-			return [x, "in"]
-		#TODO elsif...
-		else
-			return [x,unidad]
-		end
-	end
 	WC=pdflatexUnit(W, W_["unidad"])
 	W=WC[0]
 	W_["unidad"]=WC[1]
@@ -563,6 +552,9 @@ else
 	puts "cut&Stack: "+t.to_s+" segundos"
 
 	#lo devuelvo
+	if salida != nil then
+		entrada=salida
+	end
 	FileUtils.mv(directorio+"/"+"cutStack.pdf", entrada)
 end
 
