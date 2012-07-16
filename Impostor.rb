@@ -1,280 +1,429 @@
-#Ruby without rails
-module 	Impostor
+begin
 
-class Posicion
-	def initialize(mC,mP,t)
-		@mC=mC
-		@mP=mP
-		@t=t	
+#links
+require 'Clases'
+include Clases
+require 'Metodos'
+include Metodos
+
+require 'rubygems'
+require 'alchemist'
+require 'uuidtools'
+require 'fileutils'
+
+#VARS
+entrada=ARGV.shift
+salida=ARGV.shift
+
+#CONFIGURACIONES
+#TODO cómo decírselas una sola vez (instalación)
+work="/tmp/impostor"
+$requerimientos=Hash.new
+$requerimientos["pdflatex"]="/usr/bin/pdflatex"#TODO podría pasársele el puro comando
+$requerimientos["pdfinfo"]="/usr/bin/pdfinfo"
+
+#######
+#CHECKS
+$requerimientos.each do |k,v|
+if File.file?(v) then
+	if !File.executable?(v) or !File.executable_real?(v) :
+	puts k+" no es ejecutable"
+	exit
 	end
-	attr_reader :mC, :mP, :t
-	def to_s
-		"mC=#{@mC} mP=#{@mP} t=#{@t}"
-	end
+else
+puts "no hay "+k
+exit
+end
 end
 
-class Coordenada
-	def initialize(x,y)
-		@x=x
-		@y=y
-	end
-	attr_reader :x, :y
-	def to_s
-		"x=#{@x} y=#{@y}"
-	end
-end
-
-class Mix
-	def initialize(n,x,y,t)
-		@n=n
-		@x=x
-		@y=y
-		@t=t
-	end
-	attr_reader :n, :x, :y, :t
-	def to_s
-		"n=#{@n}, x=#{@x}, y=#{@y}, t=#{@t}"
-	end
-end
-
-def myPlacePDF(nX,nY,nPaginas,nPliegos)
-	myCounter=1	#numero de pagina
-	myPosition=0	#posicion en las coordenadas
-	@Transfer=0	#pliego
-	arreglo=[]
-	while (myCounter!=nPaginas+1) do
-		#USO
-		pos=Posicion.new(myCounter, myPosition, @Transfer)
-		arreglo.push(pos)
-		#NEXT
-		@Transfer+=1
-		if myCounter%2==0 then
-			myPosition-=2
-		end
-		myPosition+=1
-		if @Transfer==nPliegos then
-			@Transfer=0
-			myPosition+=2
-		end
-		myCounter+=1
-	end
-	return arreglo
-end
-
-#podria eliminar w y h haciendo la comparacion en base a n y k?
-def getCoordinates(nX,nY,w,h)
-
-	coordenadas=[]
-	#posibilidad de usar márgenes
-	x0=0
-	y0=0
-	xN=x0+w*(nX-1)
-	
-	i=0
-	k=0#posicion en
-	n=0#fila
-	while(i<nX*nY) do
-		#USO
-		coordenadas.insert(2*i, Coordenada.new(x0+k*w,y0+n*h))
-		coordenadas.insert(2*i+1, Coordenada.new(xN-k*w,y0+n*h))
-		#NEXT
-		k+=1
-		if k==nX then
-			k=0
-			n+=1
-		end
-		i+=1
-	end
-	return coordenadas
-end
-
-def ordenar(mix)
-	for j in 0...mix.length
-		for k in 0...mix.length
-			if mix[j].t>mix[k].t and j<k then #si es de un pliego mayor
-				temp=mix[j]
-				mix[j]=mix[k]
-				mix[k]=temp
-			elsif mix[j].t==mix[k].t then #si es del mismo pliego
-				if mix[j].y>mix[k].y and j<k then#si es de una fila mayor
-					temp=mix[j]
-					mix[j]=mix[k]
-					mix[k]=temp
-				elsif mix[j].y==mix[k].y then #si es de la misma
-					if mix[j].x>mix[k].x and j<k then #si esta despues
-						temp=mix[j]
-						mix[j]=mix[k]
-						mix[k]=temp
-					end
-				end
-			end
-		end
-	end
-	return mix
-end
-
-def cutStack(nX,nY,nPaginas,nPliegos,w,h)
-	coordenadas=getCoordinates(nX,nY,w,h)
-	posiciones=myPlacePDF(nX,nY,nPaginas,nPliegos)
-	remix=[]
-	for i in 0...posiciones.size
-		mix=Mix.new(posiciones[i].mC, coordenadas[posiciones[i].mP].x, coordenadas[posiciones[i].mP].y, posiciones[i].t)
-		remix.insert(i, mix)
-	end
-	remix=ordenar(remix)
-	retorno=[]
-	#retorna solo el orden
-	for i in 0...remix.length
-		retorno << remix[i].n
-	end
-	return retorno
-end
-
-#MODELO
-class Mensaje
-	attr_reader :level, :mensaje
-	def initialize(level, mensaje)
-		@level=level #1=info, 2=warn, 3=error
-		@mensaje=mensaje
-	end
-	def to_s
-		if @level==1 then
-			@retorno="info: "
-		elsif @level==2 then
-			@retorno="warn: "
-		elsif @level==3 then
-			@retorno="ERROR: "
-		end
-		@retorno+=@mensaje
-		return @retorno
-	end 
-end
-class MensajeDato < Mensaje
-	attr_reader :tipo, :numero
-	def initialize(level, tipo, numero)
-		@tipo=tipo
-		@numero=numero
-		@mensaje=deducirMensaje(tipo,level,numero)
-		super(level, @mensaje)
-	end
-
-	def deducirMensaje(tipo, level, numero)
-		if tipo=="horizontal" then
-			if level==1 then#info
-				if numero==1 then
-					return "se calcula la cantidad de paginas por pliego horizontalmente en base al ancho del pliego y el de la pagina"
-				elsif numero==2 then
-					return "se calcula el ancho del pliego en base al de la pagina y la cantidad de paginas por pliego horizontalmente"
-				elsif numero==3 then
-					return "se calcula el ancho de la pagina en base al del pliego y la cantidad de paginas por pliego horizontalmente"
-				elsif numero==4 then
-					return "se toma el ancho real de la pagina"
-				end
-			elsif level==3 then#error
-				if numero==1 then
-					return "ha especificado ancho de pagina pero no de pliego ni cuantas paginas por pliego horizontalmente"
-				elsif numero==2 then
-					return "ha especificado ancho de pliego pero no de pagina ni cuantas paginas por pliego horizontalmente"
-				elsif numero==3 then
-					return "ha especificado cuantas paginas por pliego horizontalmente pero no ancho de pagina ni de pliego"
-				elsif numero==4 then
-					return "no ha especificado ni ancho de pagina, ni ancho de pliego, ni cuantos paginas por pliego horizontalmente"
-				elsif numero==5 then
-					return "no cabe ninguna pagina horizontalmente"
-				end
-			end
-		elsif tipo=="vertical" then
-			if level==1 then#info
-				if numero==1 then
-					return "se calcula la cantidad de paginas por pliego verticalmente en base al alto del pliego y el de la pagina"
-				elsif numero==2 then
-					return "se calcula el alto del pliego en base al de la pagina y la cantidad de paginas por pliego verticalmente"
-				elsif numero==3 then
-					return "se calcula el alto de la pagina en base al del pliego y la cantidad de paginas por pliego verticalmente"
-				elsif numero==4 then
-					return "se toma el alto real de la pagina"
-				end
-			elsif level==3 then#error
-				if numero==1 then
-					return "ha especificado alto de pagina pero no de pliego ni cuantas paginas por pliego verticalmente"
-				elsif numero==2 then
-					return "ha especificado alto de pliego pero no de pagina ni cuantas paginas por pliego verticalmente"
-				elsif numero==3 then
-					return "ha especificado cuantas paginas por pliego verticalmente pero no alto de pagina ni de pliego"
-				elsif numero==4 then
-					return "no ha especificado ni alto de pagina, ni alto de pliego, ni cuantos paginas por pliego verticalmente"
-				elsif numero==5 then
-					return "no cabe ninguna pagina verticalmente"
-				end
-			end
-		elsif tipo=="paginas" then
-			if level==1 then
-				if numero==1 then
-					return "se calcula el numero de paginas a partir del numero de pliegos y de la cantidad de paginas por pliego"
-				elsif numero==2 then
-					return "se calcula el numero de pliegos a partir del numero de paginas y de la cantidad de paginas por pliego"
-				elsif numero==3 then
-					return "se usan todas las paginas del pdf"
-				end
-			elsif level==3 then
-				if numero==1 then
-					return "esta especificando mas paginas de las que tiene el documento"
-				else
-					return "no ha especificado numero de paginas ni de pliegos"
-				end
-			end
-		elsif tipo=="pliegos" then
-			if level==1 then
-				return "se toman los #{numero} pliegos necesarios"
-			elsif level==2 then
-				return "sobran #{numero} pliegos"
-			elsif level==3 then
-				return "faltan #{numero} pliegos"	
-			end
-		end
-	
-	end
-end
-class MensajeMedida < Mensaje
-	def initialize(level, tipo, args)
-		@mensaje=deducirMensaje(level, tipo, args)
-		super(level, @mensaje)
-	end
-	def deducirMensaje(level, tipo, args)
-		if tipo=="horizontal" then
-			if level==3 then
-				return "no caben #{args[0]} paginas de #{args[1]["numero"].to_s+args[1]["unidad"]} de ancho en un pliego de #{args[2]["numero"].to_s+args[2]["unidad"]}"
-			elsif level==2 then
-				return "sobra #{args[0].to_s+args[1]} de ancho"
-			end
-		elsif tipo=="vertical" then
-			if level==3 then
-				return "no caben #{args[0]} paginas de #{args[1]["numero"].to_s+args[1]["unidad"]} de alto en un pliego de #{args[2]["numero"].to_s+args[2]["unidad"]}"
-			elsif level==2 then
-				return "sobra #{args[0].to_s+args[1]} de alto"
-			end
-		end
-	end
-end
-
-#METODOS
-
-#conversion unidades alchemy 2 pdflatex
-def pdflatexUnit(x, unidad)
-	if unidad=="point" then
-		return [x,"pt"]
-	elsif unidad=="printer_point" then
-		return [x,"bp"]
-	elsif unidad=="m" then
-		x=x.to.cm
-		return [x,"cm"]
-	elsif unidad=="inch" then
-		return [x, "in"]
-	#TODO elsif...
+#archivos
+#probamos que exista el directorio de trabajo
+if File.exists?(work) then
+	#y que sea escribible
+	if File.writable?(work) and File.writable_real?(work) then
+		#creo mi directorio
+		directorio=work+"/"+UUIDTools::UUID.random_create
+		Dir.mkdir(directorio)
+		Dir.chdir(directorio)
 	else
-		return [x,unidad]
+	puts work+" no se puede escribir"
+	end	
+else
+puts work+ " no existe"
+exit
+end
+#y la entrada
+if File.file?(entrada) then
+	if File.owned?(entrada) then
+		busca = /.*(.pdf)/
+		if busca.match(File.basename(entrada)) then
+			temp=directorio+"/"+File.basename(entrada)#me lo llevo
+			FileUtils.cp(entrada, temp)
+		else
+		puts entrada+" no es pdf"
+		exit
+		end
+	else
+	puts entrada+" no es mío"
+	end
+else
+puts entrada+" no es un archivo"
+exit
+end
+
+#PDFINFO
+pdfinfo = `#{$requerimientos["pdfinfo"]} -box #{temp}`
+
+#se ejecuta una sola vez
+nPaginasReal=paginasdelpdf(pdfinfo)
+size=pagesize(pdfinfo)
+
+wReal=size["ancho"]
+hReal=size["alto"]
+
+puts "::::::::::::impostor::::::::::::"#blink blink
+######
+#INPUT
+	#VARIABLES
+	w_=input("w:")
+	h_=input("h:")
+	wP_=input("W:")
+	hP_=input("H:")
+	nX_=input("nX:")
+	nY_=input("nY:")
+	nPaginas_=input("nPaginas:")
+	nPliegos_=input("nPliegos:")
+	#con unidad
+	w=w_["numero"].send(w_["unidad"])
+	h=h_["numero"].send(h_["unidad"])
+	wP=wP_["numero"].send(wP_["unidad"])
+	hP=hP_["numero"].send(hP_["unidad"])
+	#sin unidad
+	nX=nX_["numero"].to_f.floor
+	nY=nY_["numero"].to_f.floor
+	nPaginas=nPaginas_["numero"].to_f.floor
+	nPliegos=nPliegos_["numero"].to_f.floor
+
+#cuadernitos
+cuadernillos = enBooklets()
+if cuadernillos then
+	#unidades
+	if nX%2!=0 then
+		nX=exigePar(nX) #TODO sugerencia si + o -
+	end
+	
+	#TODO COSTURAS en total
+	puts "cXC - cuadernillos por costura (0->todos unos dentro de otros, 1->todos uno al lado de otro o n-> de a n cuadernillos uno dentro de otro)"
+	cuadernillosPorCostura=input("cXC:")
+	cuadernillosPorCostura=cuadernillosPorCostura["numero"]
+
+	nX=nX/2
+	puts "como imponemos en cuadernillos, tomamos la mitad de paginas horizontalmente"#TODO mensaje, quizas para una interfaz explicitar mas
+	w=w*2
+
+	w_["numero"]=w
+	puts "como imponemos en cuadernillos, tomamos una pagina del doble de ancho"
+end
+
+###########
+#VALIDACION
+mensajes=[]
+#DATOS
+#HORIZONTALMENTE
+if w!=0.point then
+	if wP!=0.point then
+		if nX==0 then
+			nX=(wP/w).floor
+			wP=wP_["numero"].send(wP_["unidad"])#operación alchemist cambia el operando
+			if nX==0 then
+				mensajes.push(MensajeDato.new(3, "horizontal", 5))#error
+			else
+				mensajes.push(MensajeDato.new(1, "horizontal", 1))#info
+			end
+		end
+	elsif nX!=0 then
+		if wP==0.point then
+			wP_["numero"]=nX*w.to_f#actualiza para no perderlo en operacion de medidas
+			wP=wP_["numero"].send(w_["unidad"])
+			wP_["unidad"]=w_["unidad"]
+			mensajes.push(MensajeDato.new(1, "horizontal", 2))#info
+		end
+	else
+		mensajes.push(MensajeDato.new(3, "horizontal", 1))#error
+	end
+elsif wP!=0.point then
+	if nX!=0 then
+		if escalado("horizontalmente") then
+			w=(wP.to_f/nX).send(wP_["unidad"])
+			w_["numero"]=w
+			w_["unidad"]=wP_["unidad"]
+			mensajes.push(MensajeDato.new(1, "horizontal", 3))#info
+		else
+			w=wReal
+			if cuadernillos then
+				w=w*2
+				w_["numero"]=w
+			end
+			w_["unidad"]=size["unidad"]
+			mensajes.push(MensajeDato.new(1, "horizontal", 4))#info
+		end
+		mensajes.push(MensajeDato.new(1, "horizontal", 4))#info
+	else	
+		w=wReal
+		if cuadernillos then
+			w=w*2
+			w_["numero"]=w
+		end
+		w_["unidad"]=size["unidad"]
+		mensajes.push(MensajeDato.new(1, "horizontal", 4))#info
+		nX=(wP/w).floor
+		wP=wP_["numero"].send(wP_["unidad"])
+		if nX==0 then
+			mensajes.push(MensajeDato.new(1, "horizontal", 5))#error
+		else	
+			mensajes.push(MensajeDato.new(1, "horizontal", 1))#info
+		end
+	end
+elsif nX!=0 then
+	w=wReal
+	if cuadernillos then
+		w=w*2
+		w_["numero"]=w
+	end
+	w_["unidad"]=size["unidad"]
+	mensajes.push(MensajeDato.new(1, "horizontal", 4))#info
+	wP_["numero"]=nX*w.to_f
+	wP=wP_["numero"].send(w_["unidad"])
+	wP_["unidad"]=w_["unidad"]
+	mensajes.push(MensajeDato.new(1, "horizontal", 2))#info
+else
+	mensajes.push(MensajeDato.new(3, "horizontal", 4))#error
+end
+#VERTICALMENTE
+if h!=0.point then
+	if hP!=0.point then
+		if nY==0 then
+			nY=(hP/h).floor
+			hP=hP_["numero"].send(hP_["unidad"])
+			if nY==0 then
+				mensajes.push(MensajeDato.new(3, "vertical", 5))#error
+			else	
+				mensajes.push(MensajeDato.new(1, "vertical", 1))#info
+			end
+		end
+	elsif nY!=0 then
+		if hP==0.point then
+			hP_["numero"]=nY*h.to_f
+			hP=hP_["numero"].send(h_["unidad"])
+			hP_["unidad"]=h_["unidad"]
+			mensajes.push(MensajeDato.new(1, "vertical", 2))#info
+		end
+	else
+		mensajes.push(MensajeDato.new(3, "vertical", 1))#error
+	end
+elsif hP!=0.point then
+	if h!=0.point then#imposible
+		if nY==0 then
+			nY=(hP/h).floor
+			hP=hP_["numero"].send(hP_["unidad"])
+			if nY==0 then
+				mensajes.push(MensajeDato.new(1, "vertical", 5))#error
+			else
+				mensajes.push(MensajeDato.new(1, "vertical", 1))#info
+			end
+		end
+	elsif nY!=0 then
+		if h==0.point then#obvio
+			if escalado("verticalmente") then
+				h=(hP.to_f/nY).send(hP_["unidad"])
+				h_["numero"]=h
+				h_["unidad"]=hP_["unidad"]
+				mensajes.push(MensajeDato.new(1, "vertical", 3))#info
+			else
+				h=hReal
+				h_["unidad"]=size["unidad"]
+				mensajes.push(MensajeDato.new(1, "vertical", 4))#info
+			end
+		end
+	else
+		#deducimos del pdf no mas
+		h=hReal
+		h_["unidad"]=size["unidad"]
+		mensajes.push(MensajeDato.new(1, "vertical", 4))#info
+		nY=(hP/h).floor
+		hP=hP_["numero"].send(hP_["unidad"])
+		if nY==0 then
+			mensajes.push(MensajeDato.new(3, "vertical", 5))#error
+		else
+			mensajes.push(MensajeDato.new(1, "vertical", 1))#info
+		end
+	end
+elsif nY!=0 then
+	h=hReal
+	h_["unidad"]=size["unidad"]
+	mensajes.push(MensajeDato.new(1, "vertical", 4))#info
+	hP_["numero"]=nY*h.to_f
+	hP=hP_["numero"].send(h_["unidad"])
+	hP_["unidad"]=h_["unidad"]
+	mensajes.push(MensajeDato.new(1, "vertical", 2))#info
+else
+	mensajes.push(MensajeDato.new(3, "vertical", 4))#error
+end
+#MEDIDAS
+if redondear(nX*w.to_f) > redondear(wP.to(w_["unidad"]).to_f) then
+	mensajes.push(MensajeMedida.new(3, "horizontal", [nX, w_, wP_]))#error
+elsif nX>0 and (nX*w.to_f).send(w_["unidad"]) < wP then
+	sobra=wP-(nX*w.to_f).send(w_["unidad"])
+	wP=wP_["numero"].send(wP_["unidad"])
+	mensajes.push(MensajeMedida.new(2, "horizontal", [sobra, wP_["unidad"]]))#warn
+end
+if redondear(nY*h.to_f) > redondear(hP.to(h_["unidad"]).to_f) then
+	mensajes.push(MensajeMedida.new(3, "vertical", [nY, h_, hP_]))#error
+elsif nY>0 and (nY*h.to_f).send(h_["unidad"]) < hP then
+	sobra=hP-(nY*h.to_f).send(h_["unidad"])
+	hP=hP_["numero"].send(hP_["unidad"])
+	mensajes.push(MensajeMedida.new(2, "vertical", [sobra, hP_["unidad"]]))#warn
+end
+#PAGINAS
+if nPaginas==0 then
+	if nPliegos!=0 then
+		nCaben=nPliegos*nX*nY
+		if !todasPag(nPliegos, nX, nY, nCaben) then
+			if nCaben <= nPaginas then
+				nPaginas=nCaben
+				mensajes.push(MensajeDato.new(1, "paginas", 1))#info
+			else
+				mensajes.push(MensajeDato.new(3, "paginas", 1))#error	
+			end
+		else
+			nPaginas=nPaginasReal
+			mensajes.push(MensajeDato.new(1, "paginas", 3))#info
+		end
+	else
+		nPaginas=nPaginasReal
+		mensajes.push(MensajeDato.new(1, "paginas", 3))#info
 	end
 end
 
-end#fin módulo
+if cuadernillos then
+	bookletz=booklets(cuadernillosPorCostura, nPaginas)
+	nPaginas=bookletz.length/2
+	puts "si cada pagina es un cuadernillo serian #{nPaginas}p"#TODO mensaje
+	#pdflatex
+	imponerBooklet(directorio, bookletz.join(","), temp, $requerimientos, w_, h_)##TODO ya viene doblado? debiera...
+end
+#nPaginas multiplo de nX*nY
+if nX*nY!=0 and nPaginas%(nX*nY)!=0 then
+	nPaginasMult=(nPaginas/(nX*nY)+1)*(nX*nY)
+	mensajes.push(Mensaje.new(1, "El pdf tiene #{nPaginas} paginas, que impuestas en #{nX}x#{nY} son #{nPaginasMult} paginas"))
+else
+	nPaginasMult=nPaginas
+end
+#no se cuantos pliegos
+if nX!=0 and nY!=0 then
+	nPliegosCalc=(nPaginasMult.to_f/(nX*nY)).ceil
+	if nPliegos==0 then
+		nPliegos=nPliegosCalc
+		mensajes.push(MensajeDato.new(1, "paginas", 2))#info
+	else
+		if nPliegos<nPliegosCalc then
+			faltan=nPliegosCalc-nPliegos#error
+			mensajes.push(MensajeDato.new(3, "pliegos", faltan))#error	
+		elsif nPliegos>nPliegosCalc then
+			sobran=nPliegos-nPliegosCalc
+			mensajes.push(MensajeDato.new(2, "pliegos", sobran))#warn
+		end
+	end
+end
 
+#TODO ¿ROTAR?
+#si se gasta menos espacio por pliego o en total da menos pliegos...
+
+#######
+#OUTPUT
+
+ejecutara=true
+tratarRotar=false
+mensajes.each do |mensaje|
+	puts mensaje.to_s
+	if mensaje.level==3 then
+		ejecutara=false
+	end
+end
+if !ejecutara then
+	puts "el programa no se ejecutara"
+	exit
+else
+	#LaTeX
+	puts "::::::::::::cut&Stack::::::::::::"#blink blink
+	puts "nX:"+nX.to_s
+	puts "nY:"+nY.to_s
+	puts "nPaginas:"+nPaginasMult.to_s
+	puts "nPliegos:"+nPliegos.to_s
+	puts "ancho:"+w.to_s+" "+w_["unidad"]
+	puts "alto:"+h.to_s+" "+h_["unidad"]
+	puts "anchoPliego:"+wP.to_s+" "+wP_["unidad"]
+	puts "altoPliego:"+hP.to_s+" "+hP_["unidad"]
+
+	wPC=pdflatexUnit(wP, wP_["unidad"])
+	wP=wPC[0]
+	wP_["unidad"]=wPC[1]
+	hPC=pdflatexUnit(hP, hP_["unidad"])
+	hP=hPC[0]
+	hP_["unidad"]=hPC[1]
+	wC=pdflatexUnit(w, w_["unidad"])
+	w=wC[0]
+	w_["unidad"]=wC[1]
+	hC=pdflatexUnit(h, h_["unidad"])
+	h=hC[0]
+	h_["unidad"]=hC[1]
+	
+	#las paginas que no existen se dejan en blanco
+	cS=cutStack(nX,nY,nPaginasMult,nPliegos,w.to_f,h.to_f)
+	for i in 0...cS.size
+		if cS[i].to_i > nPaginas then
+			cS[i]="{}"
+		end
+	end
+	cS=cS.join(",")
+
+	cutted=directorio+"/"+"cutStack.tex"
+	File.open(cutted, 'w') do |cutStack|
+		cutStack.puts "\\documentclass{report}"
+		cutStack.puts "\\usepackage{pdfpages}"
+		cutStack.puts "\\usepackage{geometry}"
+		cutStack.puts "\\geometry{"
+		cutStack.puts "papersize={#{wP}#{wP_["unidad"]},#{hP}#{hP_["unidad"]}},"
+		cutStack.puts "left=0mm,"#posibilidad de márgenes
+		cutStack.puts "right=0mm,"
+		cutStack.puts "top=0mm,"
+		cutStack.puts "bottom=0mm,"
+		cutStack.puts "ignoreall,"
+		cutStack.puts "headsep=0mm,"
+		cutStack.puts "headheight=0mm,"
+		cutStack.puts "foot=0mm,"
+		cutStack.puts "marginpar=0mm"
+		cutStack.puts "}"
+		cutStack.puts "\\begin{document}"
+		cutStack.puts "\\includepdf[pages={#{cS}},nup=#{nX}x#{nY},noautoscale, frame, width=#{w}#{w_["unidad"]}, height=#{h}#{h_["unidad"]}]{#{temp}}"
+		cutStack.puts "\\end{document}"
+	end
+	
+	tIni=Time.now
+	pdflatex=`#{$requerimientos["pdflatex"]} #{cutted}`
+	tFin=Time.now
+	t=tFin-tIni
+	puts "cut&Stack: "+t.to_s+" segundos"
+
+	#lo devuelvo
+	if salida != nil then
+		entrada=salida
+	end
+	FileUtils.mv(directorio+"/"+"cutStack.pdf", entrada)
+end
+
+ensure
+#limpio todo, aunque se caiga
+`rm -r #{directorio}`
+end
+#GAME OVER
