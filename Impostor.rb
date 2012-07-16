@@ -11,18 +11,16 @@ require 'alchemist'
 require 'uuidtools'
 require 'fileutils'
 
-#VARS
+#vars
 entrada=ARGV.shift
 salida=ARGV.shift
 
-#CONFIGURACIONES
-#TODO cómo decírselas una sola vez (instalación)
+#CONFIGURACIONES TODO cómo decírselas una sola vez (instalación)
 work="/tmp/impostor"
 $requerimientos=Hash.new
 $requerimientos["pdflatex"]="/usr/bin/pdflatex"#TODO podría pasársele el puro comando
 $requerimientos["pdfinfo"]="/usr/bin/pdfinfo"
 
-#######
 #CHECKS
 $requerimientos.each do |k,v|
 if File.file?(v) then
@@ -36,7 +34,7 @@ exit
 end
 end
 
-#archivos
+#ARCHIVOS
 #probamos que exista el directorio de trabajo
 if File.exists?(work) then
 	#y que sea escribible
@@ -46,13 +44,13 @@ if File.exists?(work) then
 		Dir.mkdir(directorio)
 		Dir.chdir(directorio)
 	else
-	puts work+" no se puede escribir"
+	puts "el directorio de trabajo "+work+" no se puede escribir"
 	end	
 else
-puts work+ " no existe"
+puts "el directorio de trabajo "+work+ " no existe"
 exit
 end
-#y la entrada
+#la entrada
 if File.file?(entrada) then
 	if File.owned?(entrada) then
 		busca = /.*(.pdf)/
@@ -60,49 +58,58 @@ if File.file?(entrada) then
 			temp=directorio+"/"+File.basename(entrada)#me lo llevo
 			FileUtils.cp(entrada, temp)
 		else
-		puts entrada+" no es pdf"
+		puts "el archivo "+entrada+" no es pdf"
 		exit
 		end
 	else
-	puts entrada+" no es mío"
+	puts "el archivo "+entrada+" no es mío"
 	end
 else
 puts entrada+" no es un archivo"
 exit
 end
+#y la salida, de haberla
+if salida!=nil then
+#if File.exists?(salida) then TODO crearla si es escribible
+	#y que sea escribible
+	if !File.writable?(salida) or !File.writable_real?(salida) then
+		puts "el directorio de salida "+salida+" no se puede escribir"
+		exit
+	end	
+#else
+#puts work+ " no existe"
+end
 
-#PDFINFO
+#PDFINFO se ejecuta una sola vez
 pdfinfo = `#{$requerimientos["pdfinfo"]} -box #{temp}`
 
-#se ejecuta una sola vez
 nPaginasReal=paginasdelpdf(pdfinfo)
-size=pagesize(pdfinfo)
 
+size=pagesize(pdfinfo)
 wReal=size["ancho"]
 hReal=size["alto"]
 
 puts "::::::::::::impostor::::::::::::"#blink blink
-######
+
 #INPUT
-	#VARIABLES
-	w_=input("w:")
-	h_=input("h:")
-	wP_=input("W:")
-	hP_=input("H:")
-	nX_=input("nX:")
-	nY_=input("nY:")
-	nPaginas_=input("nPaginas:")
-	nPliegos_=input("nPliegos:")
-	#con unidad
-	w=w_["numero"].send(w_["unidad"])
-	h=h_["numero"].send(h_["unidad"])
-	wP=wP_["numero"].send(wP_["unidad"])
-	hP=hP_["numero"].send(hP_["unidad"])
-	#sin unidad
-	nX=nX_["numero"].to_f.floor
-	nY=nY_["numero"].to_f.floor
-	nPaginas=nPaginas_["numero"].to_f.floor
-	nPliegos=nPliegos_["numero"].to_f.floor
+w_=input("w:")
+h_=input("h:")
+wP_=input("W:")
+hP_=input("H:")
+nX_=input("nX:")
+nY_=input("nY:")
+nPaginas_=input("nPaginas:")
+nPliegos_=input("nPliegos:")
+#con unidad
+w=w_["numero"].send(w_["unidad"])
+h=h_["numero"].send(h_["unidad"])
+wP=wP_["numero"].send(wP_["unidad"])
+hP=hP_["numero"].send(hP_["unidad"])
+#sin unidad
+nX=nX_["numero"].to_f.floor
+nY=nY_["numero"].to_f.floor
+nPaginas=nPaginas_["numero"].to_f.floor
+nPliegos=nPliegos_["numero"].to_f.floor
 
 #cuadernitos
 cuadernillos = enBooklets()
@@ -110,25 +117,22 @@ if cuadernillos then
 	#unidades
 	if nX%2!=0 then
 		nX=exigePar(nX) #TODO sugerencia si + o -
-	end
-	
+	end	
 	#TODO COSTURAS en total
 	puts "cXC - cuadernillos por costura (0->todos unos dentro de otros, 1->todos uno al lado de otro o n-> de a n cuadernillos uno dentro de otro)"
 	cuadernillosPorCostura=input("cXC:")
 	cuadernillosPorCostura=cuadernillosPorCostura["numero"]
-
+	#TODO mensaje, quizas para una interfaz explicitar mas
 	nX=nX/2
-	puts "como imponemos en cuadernillos, tomamos la mitad de paginas horizontalmente"#TODO mensaje, quizas para una interfaz explicitar mas
+	puts "como imponemos en cuadernillos, tomamos la mitad de paginas horizontalmente"
 	w=w*2
 
 	w_["numero"]=w
 	puts "como imponemos en cuadernillos, tomamos una pagina del doble de ancho"
 end
 
-###########
 #VALIDACION
 mensajes=[]
-#DATOS
 #HORIZONTALMENTE
 if w!=0.point then
 	if wP!=0.point then
@@ -222,28 +226,16 @@ if h!=0.point then
 		mensajes.push(MensajeDato.new(3, "vertical", 1))#error
 	end
 elsif hP!=0.point then
-	if h!=0.point then#imposible
-		if nY==0 then
-			nY=(hP/h).floor
-			hP=hP_["numero"].send(hP_["unidad"])
-			if nY==0 then
-				mensajes.push(MensajeDato.new(1, "vertical", 5))#error
-			else
-				mensajes.push(MensajeDato.new(1, "vertical", 1))#info
-			end
-		end
-	elsif nY!=0 then
-		if h==0.point then#obvio
-			if escalado("verticalmente") then
-				h=(hP.to_f/nY).send(hP_["unidad"])
-				h_["numero"]=h
-				h_["unidad"]=hP_["unidad"]
-				mensajes.push(MensajeDato.new(1, "vertical", 3))#info
-			else
-				h=hReal
-				h_["unidad"]=size["unidad"]
-				mensajes.push(MensajeDato.new(1, "vertical", 4))#info
-			end
+	if nY!=0 then
+		if escalado("verticalmente") then
+			h=(hP.to_f/nY).send(hP_["unidad"])
+			h_["numero"]=h
+			h_["unidad"]=hP_["unidad"]
+			mensajes.push(MensajeDato.new(1, "vertical", 3))#info
+		else
+			h=hReal
+			h_["unidad"]=size["unidad"]
+			mensajes.push(MensajeDato.new(1, "vertical", 4))#info
 		end
 	else
 		#deducimos del pdf no mas
@@ -309,8 +301,7 @@ if cuadernillos then
 	bookletz=booklets(cuadernillosPorCostura, nPaginas)
 	nPaginas=bookletz.length/2
 	puts "si cada pagina es un cuadernillo serian #{nPaginas}p"#TODO mensaje
-	#pdflatex
-	imponerBooklet(directorio, bookletz.join(","), temp, $requerimientos, w_, h_)##TODO ya viene doblado? debiera...
+	imponerBooklet(directorio, bookletz.join(","), temp, $requerimientos, w_, h_)#pdflatex TODO 1 sola vez?
 end
 #nPaginas multiplo de nX*nY
 if nX*nY!=0 and nPaginas%(nX*nY)!=0 then
@@ -336,12 +327,9 @@ if nX!=0 and nY!=0 then
 	end
 end
 
-#TODO ¿ROTAR?
-#si se gasta menos espacio por pliego o en total da menos pliegos...
+#TODO ¿ROTAR? si se gasta menos espacio por pliego o en total da menos pliegos...
 
-#######
 #OUTPUT
-
 ejecutara=true
 tratarRotar=false
 mensajes.each do |mensaje|
@@ -354,7 +342,7 @@ if !ejecutara then
 	puts "el programa no se ejecutara"
 	exit
 else
-	#LaTeX
+	#LaTeX TODO dejar en Metodos.rb
 	puts "::::::::::::cut&Stack::::::::::::"#blink blink
 	puts "nX:"+nX.to_s
 	puts "nY:"+nY.to_s
