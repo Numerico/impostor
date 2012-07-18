@@ -51,33 +51,40 @@ puts "el directorio de trabajo "+work+ " no existe"
 exit
 end
 #la entrada
-if File.file?(entrada) then
-	if File.owned?(entrada) then
-		busca = /.*(.pdf)/
-		if busca.match(File.basename(entrada)) then
-			temp=directorio+"/"+File.basename(entrada)#me lo llevo
-			FileUtils.cp(entrada, temp)
+if entrada != nil then
+	if File.file?(entrada) then
+		if File.owned?(entrada) then
+			busca = /.*(.pdf)/
+			if busca.match(File.basename(entrada)) then
+				temp=directorio+"/"+File.basename(entrada)#me lo llevo
+				FileUtils.cp(entrada, temp)
+			else
+			puts "el archivo "+entrada+" no es pdf"
+			exit
+			end
 		else
-		puts "el archivo "+entrada+" no es pdf"
-		exit
+		puts "el archivo "+entrada+" no es mío"
 		end
 	else
-	puts "el archivo "+entrada+" no es mío"
+	puts entrada+" no es un archivo"
+	exit
 	end
 else
-puts entrada+" no es un archivo"
-exit
+	puts "no ha especificado archivo a imponer"
+	exit
 end
 #y la salida, de haberla
 if salida!=nil then
-#if File.exists?(salida) then TODO crearla si es escribible
-	#y que sea escribible
-	if !File.writable?(salida) or !File.writable_real?(salida) then
+#if File.exists?(salida) then #TODO crearla si es escribible
+	salidaDir=File.dirname(salida)
+	if !File.writable?(salidaDir) or !File.writable_real?(salidaDir) then
 		puts "el directorio de salida "+salida+" no se puede escribir"
 		exit
 	end	
 #else
-#puts work+ " no existe"
+#	puts salida+ " no existe"
+#	exit
+#end
 end
 
 #PDFINFO se ejecuta una sola vez
@@ -171,7 +178,6 @@ elsif wP!=0.point then
 			w_["unidad"]=size["unidad"]
 			mensajes.push(MensajeDato.new(1, "horizontal", 4))#info
 		end
-		mensajes.push(MensajeDato.new(1, "horizontal", 4))#info
 	else	
 		w=wReal
 		if cuadernillos then
