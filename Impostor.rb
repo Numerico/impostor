@@ -189,7 +189,7 @@ elsif wP!=0.point then
 		nX=(wP/w).floor
 		wP=wP_["numero"].send(wP_["unidad"])
 		if nX==0 then
-			mensajes.push(MensajeDato.new(1, "horizontal", 5))#error
+			mensajes.push(MensajeDato.new(3, "horizontal", 5))#error
 		else	
 			mensajes.push(MensajeDato.new(1, "horizontal", 1))#info
 		end
@@ -240,12 +240,14 @@ elsif hP!=0.point then
 			mensajes.push(MensajeDato.new(1, "vertical", 3))#info
 		else
 			h=hReal
+			h_["numero"]=h
 			h_["unidad"]=size["unidad"]
 			mensajes.push(MensajeDato.new(1, "vertical", 4))#info
 		end
 	else
 		#deducimos del pdf no mas
 		h=hReal
+		h_["numero"]=h
 		h_["unidad"]=size["unidad"]
 		mensajes.push(MensajeDato.new(1, "vertical", 4))#info
 		nY=(hP/h).floor
@@ -258,6 +260,7 @@ elsif hP!=0.point then
 	end
 elsif nY!=0 then
 	h=hReal
+	h_["numero"]=h
 	h_["unidad"]=size["unidad"]
 	mensajes.push(MensajeDato.new(1, "vertical", 4))#info
 	hP_["numero"]=nY*h.to_f
@@ -306,7 +309,7 @@ end
 if cuadernillos then
 	bookletz=booklets(cuadernillosPorCostura, nPaginas)
 	nPaginas=bookletz.length/2
-	puts "si cada pagina es un cuadernillo serian #{nPaginas}p"#TODO mensaje
+	puts "si cada pagina es un cuadernillo serian #{nPaginas}p"
 	imponerBooklet(directorio, bookletz.join(","), temp, $requerimientos, w_, h_)#pdflatex TODO 1 sola vez?
 end
 #nPaginas multiplo de nX*nY
