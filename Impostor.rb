@@ -129,9 +129,9 @@ if cuadernillos then
 	puts "cXC - cuadernillos por costura (0->todos unos dentro de otros, 1->todos uno al lado de otro o n-> de a n cuadernillos uno dentro de otro)"
 	cuadernillosPorCostura=input("cXC:")
 	cuadernillosPorCostura=cuadernillosPorCostura["numero"]
-	#TODO mensaje, quizas para una interfaz explicitar mas
+	
 	nX=nX/2
-	puts "como imponemos en cuadernillos, tomamos la mitad de paginas horizontalmente"
+	puts "como imponemos en cuadernillos, tomamos la mitad de paginas horizontalmente"#TODO mensaje, quizas para una interfaz explicitar mas
 	w=w*2
 
 	w_["numero"]=w
@@ -286,12 +286,12 @@ elsif nY>0 and (nY*h.to_f).send(h_["unidad"]) < hP then
 	mensajes.push(MensajeMedida.new(2, "vertical", [sobra, hP_["unidad"]]))#warn
 end
 #PAGINAS
+nXm=nX
+if cuadernillos then
+	nXm*=2
+end
 if nPaginas==0 then
 	if nPliegos!=0 then
-		nXm=nX
-		if cuadernillos then
-			nXm*=2
-		end
 		nCaben=nPliegos*nXm*nY
 		if !todasPag(nPliegos, nXm, nY, nCaben, nPaginasReal) then
 			nPaginas=nCaben
@@ -306,39 +306,17 @@ if nPaginas==0 then
 		end
 	else
 		nPaginas=nPaginasReal
-		
 		mensajes.push(MensajeDato.new(1, "paginas", 3))#info
 	end
 end
-
-#No sé si debe repetirse la validación o la primera imposición moverse abajo. TODO
-if !validar(mensajes) then
-	puts "el programa no se ejecutara"
-	exit
-else
-	mensajes=[]
-end
-if cuadernillos then
-	bookletz=booklets(cuadernillosPorCostura, nPaginas, nPaginasReal)
-	nPaginas=bookletz.length/2
-	#puts "si cada pagina es un cuadernillo serian #{nPaginas}p"
-	imponerBooklet(directorio, bookletz.join(","), temp, $requerimientos, w_, h_)#pdflatex TODO 1 sola vez?
-end
-
-#nPaginas multiplo de nX*nY
-if nX*nY!=0 and nPaginas%(nX*nY)!=0 then
-	nPaginasMult=(nPaginas/(nX*nY)+1)*(nX*nY)
-	mensajes.push(Mensaje.new(1, "El pdf tiene #{nPaginas} paginas, que impuestas en #{nX}x#{nY} son #{nPaginasMult} paginas"))
-else
-	nPaginasMult=nPaginas
-end
 #no se cuantos pliegos
 if nX!=0 and nY!=0 then
-	nPliegosCalc=(nPaginasMult.to_f/(nX*nY)).ceil
+	nPliegosCalc=(nPaginas.to_f/(nXm*nY)).ceil
 	if nPliegos==0 then
 		nPliegos=nPliegosCalc
 		if cuadernillos and nPliegos%2!=0 then
 			nPliegos=(nPliegos.to_f/2).ceil*2
+			nPaginas=nPliegos*nXm*nY
 		end
 		mensajes.push(MensajeDato.new(1, "paginas", 2))#info
 	else
@@ -351,6 +329,15 @@ if nX!=0 and nY!=0 then
 		end
 	end
 end
+bookletz=booklets(cuadernillosPorCostura, nPaginas, nPaginasReal)
+nPaginas=bookletz.length/2
+#nPaginas multiplo de nX*nY
+if nX*nY!=0 and nPaginas%(nX*nY)!=0 then
+	nPaginasMult=(nPaginas/(nX*nY)+1)*(nX*nY)
+	mensajes.push(Mensaje.new(1, "El pdf tiene #{nPaginas} paginas, que impuestas en #{nX}x#{nY} son #{nPaginasMult} paginas"))
+else
+	nPaginasMult=nPaginas
+end
 
 #TODO ¿ROTAR? si se gasta menos espacio por pliego o en total da menos pliegos...
 
@@ -358,9 +345,12 @@ if !validar(mensajes) then
 	puts "el programa no se ejecutara"
 	exit
 else
+	if cuadernillos then
+		imponerBooklet(directorio, bookletz.join(","), temp, $requerimientos, w_, h_)#pdflatex TODO 1 sola vez?
+	end
 	#LaTeX TODO dejar en Metodos.rb
 	puts "::::::::::::cut&Stack::::::::::::"#blink blink
-	puts "nX:"+nX.to_s
+	puts "nX:"+nXm.to_s
 	puts "nY:"+nY.to_s
 	puts "nPaginas:"+nPaginasMult.to_s
 	puts "nPliegos:"+nPliegos.to_s
