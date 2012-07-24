@@ -315,6 +315,7 @@ if nX!=0 and nY!=0 then
 	if nPliegos==0 then
 		nPliegos=nPliegosCalc
 		if cuadernillos and nPliegos%2!=0 then
+			puts "como son cuadernillos lado y lado los pliegos no pueden ser impares, se toman #{nPliegos}+1"#TODO mensaje
 			nPliegos=(nPliegos.to_f/2).ceil*2
 			nPaginas=nPliegos*nXm*nY
 		end
