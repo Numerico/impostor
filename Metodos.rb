@@ -148,8 +148,7 @@ def unaDentroDeOtra(paginasReal, paginasEnCuadernillo, inicio, fin)
 end
 
 #agrupa en cuadernillos
-def booklets(cuadernillosPorCostura, paginas)
-	paginasReal=paginas
+def booklets(cuadernillosPorCostura, paginas, paginasReal)
 	paginas=mult4(paginas)
 	if cuadernillosPorCostura==0 then
 		pagsEnCuadernillo=paginas#todos unos dentro de otros
@@ -347,8 +346,8 @@ def escalado(tipo)
 	end
 end
 
-def todasPag(nPliegos, nX, nY, caben)
-	STDOUT.puts("el pdf tiene #{caben.to_i} paginas, pero en #{nPliegos.to_i} de #{nX}x#{nY} caben #{caben.to_i} paginas ¿usar las del pdf? (y/n)")
+def todasPag(nPliegos, nX, nY, caben, tiene)
+	STDOUT.puts("el pdf tiene #{tiene.to_i} paginas, pero en #{nPliegos.to_i} de #{nX}x#{nY} caben #{caben.to_i} paginas ¿usar las del pdf? (y/n)")
 		escalar=STDIN.gets.to_s
 	if escalar[0]==121 then#Y
 		return true
@@ -361,6 +360,18 @@ end
 
 def redondear(n)#TODO por BUG de alchemist (ruby 1.9 tiene round(3))
 	(n*1000).round/1000
+end
+
+#TODO si hay error mostrar solo errores
+def validar(mensajes)
+	valido=true
+	mensajes.each do |mensaje|
+		puts mensaje.to_s
+		if mensaje.level==3 then
+			valido=false
+		end
+	end
+	return valido
 end
 
 end

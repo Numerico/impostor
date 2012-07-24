@@ -288,10 +288,14 @@ end
 #PAGINAS
 if nPaginas==0 then
 	if nPliegos!=0 then
-		nCaben=nPliegos*nX*nY
-		if !todasPag(nPliegos, nX, nY, nCaben) then
+		nXm=nX
+		if cuadernillos then
+			nXm*=2
+		end
+		nCaben=nPliegos*nXm*nY
+		if !todasPag(nPliegos, nXm, nY, nCaben, nPaginasReal) then
+			nPaginas=nCaben
 			if nCaben <= nPaginas then
-				nPaginas=nCaben
 				mensajes.push(MensajeDato.new(1, "paginas", 1))#info
 			else
 				mensajes.push(MensajeDato.new(3, "paginas", 1))#error	
@@ -302,16 +306,25 @@ if nPaginas==0 then
 		end
 	else
 		nPaginas=nPaginasReal
+		
 		mensajes.push(MensajeDato.new(1, "paginas", 3))#info
 	end
 end
 
+#No sé si debe repetirse la validación o la primera imposición moverse abajo. TODO
+if !validar(mensajes) then
+	puts "el programa no se ejecutara"
+	exit
+else
+	mensajes=[]
+end
 if cuadernillos then
-	bookletz=booklets(cuadernillosPorCostura, nPaginas)
+	bookletz=booklets(cuadernillosPorCostura, nPaginas, nPaginasReal)
 	nPaginas=bookletz.length/2
-	puts "si cada pagina es un cuadernillo serian #{nPaginas}p"
+	#puts "si cada pagina es un cuadernillo serian #{nPaginas}p"
 	imponerBooklet(directorio, bookletz.join(","), temp, $requerimientos, w_, h_)#pdflatex TODO 1 sola vez?
 end
+
 #nPaginas multiplo de nX*nY
 if nX*nY!=0 and nPaginas%(nX*nY)!=0 then
 	nPaginasMult=(nPaginas/(nX*nY)+1)*(nX*nY)
@@ -324,6 +337,9 @@ if nX!=0 and nY!=0 then
 	nPliegosCalc=(nPaginasMult.to_f/(nX*nY)).ceil
 	if nPliegos==0 then
 		nPliegos=nPliegosCalc
+		if cuadernillos and nPliegos%2!=0 then
+			nPliegos=(nPliegos.to_f/2).ceil*2
+		end
 		mensajes.push(MensajeDato.new(1, "paginas", 2))#info
 	else
 		if nPliegos<nPliegosCalc then
@@ -338,16 +354,7 @@ end
 
 #TODO ¿ROTAR? si se gasta menos espacio por pliego o en total da menos pliegos...
 
-#OUTPUT
-ejecutara=true
-tratarRotar=false
-mensajes.each do |mensaje|
-	puts mensaje.to_s
-	if mensaje.level==3 then
-		ejecutara=false
-	end
-end
-if !ejecutara then
+if !validar(mensajes) then
 	puts "el programa no se ejecutara"
 	exit
 else
