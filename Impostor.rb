@@ -24,7 +24,7 @@ $requerimientos["pdfinfo"]="/usr/bin/pdfinfo"
 #CHECKS
 $requerimientos.each do |k,v|
 if File.file?(v) then
-	if !File.executable?(v) or !File.executable_real?(v) :
+	if !File.executable?(v) or !File.executable_real?(v) then
 	puts k+" no es ejecutable"
 	exit
 	end
@@ -314,6 +314,7 @@ if nX!=0 and nY!=0 then
 	nPliegosCalc=(nPaginas.to_f/(nXm*nY)).ceil
 	if nPliegos==0 then
 		nPliegos=nPliegosCalc
+		#TODO quizas tiene que ser siempre nPliegos%2==0
 		if cuadernillos and nPliegos%2!=0 then
 			puts "como son cuadernillos lado y lado los pliegos no pueden ser impares, se toman #{nPliegos}+1"#TODO mensaje
 			nPliegos=(nPliegos.to_f/2).ceil*2
@@ -330,8 +331,10 @@ if nX!=0 and nY!=0 then
 		end
 	end
 end
-bookletz=booklets(cuadernillosPorCostura, nPaginas, nPaginasReal)
-nPaginas=bookletz.length/2
+if cuadernillos then
+  bookletz=booklets(cuadernillosPorCostura, nPaginas, nPaginasReal)
+  nPaginas=bookletz.length/2
+end
 #nPaginas multiplo de nX*nY
 if nX*nY!=0 and nPaginas%(nX*nY)!=0 then
 	nPaginasMult=(nPaginas/(nX*nY)+1)*(nX*nY)
@@ -420,5 +423,6 @@ end
 ensure
 #limpio todo, aunque se caiga
 `rm -r #{directorio}`
+puts "::::::::::::Game Over::::::::::::"#blink blink
 end
 #GAME OVER
