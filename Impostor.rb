@@ -418,11 +418,11 @@ else
 		entrada=salida
 	end
 	FileUtils.mv(directorio+"/"+"cutStack.pdf", entrada)
+	puts "::::::::::::Game Over::::::::::::"#blink blink
 end
 
 ensure
 #limpio todo, aunque se caiga
 `rm -r #{directorio}`
-puts "::::::::::::Game Over::::::::::::"#blink blink
 end
 #GAME OVER
