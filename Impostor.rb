@@ -314,8 +314,7 @@ if nX!=0 and nY!=0 then
 	nPliegosCalc=(nPaginas.to_f/(nXm*nY)).ceil
 	if nPliegos==0 then
 		nPliegos=nPliegosCalc
-		#TODO quizas tiene que ser siempre nPliegos%2==0
-		if cuadernillos and nPliegos%2!=0 then
+		if nPliegos%2!=0 then
 			puts "como son cuadernillos lado y lado los pliegos no pueden ser impares, se toman #{nPliegos}+1"#TODO mensaje
 			nPliegos=(nPliegos.to_f/2).ceil*2
 			nPaginas=nPliegos*nXm*nY
@@ -379,7 +378,7 @@ else
 	#las paginas que no existen se dejan en blanco
 	cS=cutStack(nX,nY,nPaginasMult,nPliegos,w.to_f,h.to_f)
 	for i in 0...cS.size
-		if cS[i].to_i > nPaginas then
+		if cS[i].to_i > nPaginasReal then
 			cS[i]="{}"
 		end
 	end
