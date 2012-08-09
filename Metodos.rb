@@ -229,12 +229,8 @@ def imponerBooklet(directorio, ordenBook, archivo, requerimientos, w_, h_)
 		booklet.puts "\\includepdf[pages={#{ordenBook}},nup=2x1,noautoscale,width=#{wDummy/2}#{w_["unidad"]}, height=#{h_["numero"]}#{h_["unidad"]}]{#{archivo}}"
 		booklet.puts "\\end{document}"
 	end
-	tIni=Time.now
+	#LaTeX
 	pdflatex=`#{$requerimientos["pdflatex"]} #{pierpa}`
-	tFin=Time.now
-	t=tFin-tIni
-	puts "booklets: "+t.to_s+" segundos"
-
 	#lo devuelvo
 	FileUtils.mv(directorio+"/"+"booKlet.pdf", archivo)
 end
@@ -372,6 +368,56 @@ def validar(mensajes)
 		end
 	end
 	return valido
+end
+
+def imponerStack(nX, nY, w, h, wP, hP, nPaginas, nPaginasMult, nPliegos, directorio, temp, w_, h_, wP_, hP_)#TODO los ultimos 4 mandar la pura unidad
+  
+  wPC=pdflatexUnit(wP, wP_["unidad"])
+  wP=wPC[0]
+  wP_["unidad"]=wPC[1]
+  hPC=pdflatexUnit(hP, hP_["unidad"])
+  hP=hPC[0]
+  hP_["unidad"]=hPC[1]
+  wC=pdflatexUnit(w, w_["unidad"])
+  w=wC[0]
+  w_["unidad"]=wC[1]
+  hC=pdflatexUnit(h, h_["unidad"])
+  h=hC[0]
+  h_["unidad"]=hC[1]
+  
+  #las paginas que no existen se dejan en blanco
+  cS=cutStack(nX,nY,nPaginasMult,nPliegos,w.to_f,h.to_f)
+  for i in 0...cS.size
+    if cS[i].to_i > nPaginas then
+      cS[i]="{}"
+    end
+  end
+  cS=cS.join(",")
+
+  cutted=directorio+"/"+"cutStack.tex"
+  File.open(cutted, 'w') do |cutStack|
+    cutStack.puts "\\documentclass{report}"
+    cutStack.puts "\\usepackage{pdfpages}"
+    cutStack.puts "\\usepackage{geometry}"
+    cutStack.puts "\\geometry{"
+    cutStack.puts "papersize={#{wP}#{wP_["unidad"]},#{hP}#{hP_["unidad"]}},"
+    cutStack.puts "left=0mm,"#posibilidad de márgenes
+    cutStack.puts "right=0mm,"
+    cutStack.puts "top=0mm,"
+    cutStack.puts "bottom=0mm,"
+    cutStack.puts "ignoreall,"
+    cutStack.puts "headsep=0mm,"
+    cutStack.puts "headheight=0mm,"
+    cutStack.puts "foot=0mm,"
+    cutStack.puts "marginpar=0mm"
+    cutStack.puts "}"
+    cutStack.puts "\\begin{document}"
+    cutStack.puts "\\includepdf[pages={#{cS}},nup=#{nX}x#{nY},noautoscale, frame, width=#{w}#{w_["unidad"]}, height=#{h}#{h_["unidad"]}]{#{temp}}"
+    cutStack.puts "\\end{document}"
+  end
+ 
+  pdflatex=`#{$requerimientos["pdflatex"]} #{cutted}`
+  
 end
 
 end

@@ -1,6 +1,7 @@
 begin
 
 #links
+#TODO si le pongo los nombres correctos, puedo ahoorarme los 'include'. tipo Impostor::Clases
 require 'Clases'
 include Clases
 require 'Metodos'
@@ -17,10 +18,11 @@ salida=ARGV.shift
 
 #CONFIGURACIONES TODO cómo decírselas una sola vez (instalación)
 work="/tmp/impostor"
+#TODO Y cómo testear esto en Rails? Prueba Unitaria de gem?
+#TODO podría pasársele el puro comando
 $requerimientos=Hash.new
-$requerimientos["pdflatex"]="/usr/bin/pdflatex"#TODO podría pasársele el puro comando
+$requerimientos["pdflatex"]="/usr/bin/pdflatex"
 $requerimientos["pdfinfo"]="/usr/bin/pdfinfo"
-
 #CHECKS
 $requerimientos.each do |k,v|
 if File.file?(v) then
@@ -59,7 +61,7 @@ if entrada != nil then
 				temp=directorio+"/"+File.basename(entrada)#me lo llevo
 				FileUtils.cp(entrada, temp)
 			else
-			puts "el archivo "+entrada+" no es pdf"
+			puts "el archivo "+entrada+" no es pdf"#TODO esto es lo único que se testeará en Rails
 			exit
 			end
 		else
@@ -87,17 +89,7 @@ if salida!=nil then
 #end
 end
 
-#PDFINFO se ejecuta una sola vez
-pdfinfo = `#{$requerimientos["pdfinfo"]} -box #{temp}`
-
-nPaginasReal=paginasdelpdf(pdfinfo)
-
-size=pagesize(pdfinfo)
-wReal=size["ancho"]
-hReal=size["alto"]
-
 puts "::::::::::::impostor::::::::::::"#blink blink
-
 #INPUT
 w_=input("w:")
 h_=input("h:")
@@ -118,25 +110,37 @@ nY=nY_["numero"].to_f.floor
 nPaginas=nPaginas_["numero"].to_f.floor
 nPliegos=nPliegos_["numero"].to_f.floor
 
-#cuadernitos
 cuadernillos = enBooklets()
+#cuadernitos
 if cuadernillos then
-	#unidades
-	if nX%2!=0 then
-		nX=exigePar(nX) #TODO sugerencia si + o -
-	end	
-	#TODO COSTURAS en total
-	puts "cXC - cuadernillos por costura (0->todos unos dentro de otros, 1->todos uno al lado de otro o n-> de a n cuadernillos uno dentro de otro)"
-	cuadernillosPorCostura=input("cXC:")
-	cuadernillosPorCostura=cuadernillosPorCostura["numero"]
-	
-	nX=nX/2
-	puts "como imponemos en cuadernillos, tomamos la mitad de paginas horizontalmente"#TODO mensaje, quizas para una interfaz explicitar mas
-	w=w*2
+  #unidades
+  if nX%2!=0 then
+    nX=exigePar(nX) #TODO sugerencia si + o -
+  end 
+  #TODO COSTURAS en total
+  puts "cXC - cuadernillos por costura (0->todos unos dentro de otros, 1->todos uno al lado de otro o n-> de a n cuadernillos uno dentro de otro)"
+  cuadernillosPorCostura=input("cXC:")
+  cuadernillosPorCostura=cuadernillosPorCostura["numero"]
+  
+  nX=nX/2
+  puts "como imponemos en cuadernillos, tomamos la mitad de paginas horizontalmente"#TODO mensaje, quizas para una interfaz explicitar mas
+  w=w*2
 
-	w_["numero"]=w
-	puts "como imponemos en cuadernillos, tomamos una pagina del doble de ancho"
+  w_["numero"]=w
+  puts "como imponemos en cuadernillos, tomamos una pagina del doble de ancho"
 end
+
+#DENTRO DEL GEM
+
+#1 REQUEST (archivo)
+#PDFINFO se ejecuta una sola vez
+pdfinfo = `#{$requerimientos["pdfinfo"]} -box #{temp}`
+nPaginasReal=paginasdelpdf(pdfinfo)
+size=pagesize(pdfinfo)
+wReal=size["ancho"]
+hReal=size["alto"]
+
+#2 REQUEST (parametros)
 
 #VALIDACION
 mensajes=[]
@@ -342,77 +346,34 @@ if nX*nY!=0 and nPaginas%(nX*nY)!=0 then
 else
 	nPaginasMult=nPaginas
 end
-
 #TODO ¿ROTAR? si se gasta menos espacio por pliego o en total da menos pliegos...
 
+#EJECUCION
 if !validar(mensajes) then
 	puts "el programa no se ejecutara"
 	exit
 else
 	if cuadernillos then
-		imponerBooklet(directorio, bookletz.join(","), temp, $requerimientos, w_, h_)#pdflatex TODO 1 sola vez?
+	  tIni=Time.now
+		  imponerBooklet(directorio, bookletz.join(","), temp, $requerimientos, w_, h_)#pdflatex TODO 1 sola vez?
+		tFin=Time.now
+    t=tFin-tIni
+    puts "booklets: "+t.to_s+" segundos"
 	end
-	#LaTeX TODO dejar en Metodos.rb
-	puts "::::::::::::cut&Stack::::::::::::"#blink blink
-	puts "nX:"+nXm.to_s
-	puts "nY:"+nY.to_s
-	puts "nPaginas:"+nPaginasMult.to_s
-	puts "nPliegos:"+nPliegos.to_s
-	puts "ancho:"+w.to_s+" "+w_["unidad"]
-	puts "alto:"+h.to_s+" "+h_["unidad"]
-	puts "anchoPliego:"+wP.to_s+" "+wP_["unidad"]
-	puts "altoPliego:"+hP.to_s+" "+hP_["unidad"]
-
-	wPC=pdflatexUnit(wP, wP_["unidad"])
-	wP=wPC[0]
-	wP_["unidad"]=wPC[1]
-	hPC=pdflatexUnit(hP, hP_["unidad"])
-	hP=hPC[0]
-	hP_["unidad"]=hPC[1]
-	wC=pdflatexUnit(w, w_["unidad"])
-	w=wC[0]
-	w_["unidad"]=wC[1]
-	hC=pdflatexUnit(h, h_["unidad"])
-	h=hC[0]
-	h_["unidad"]=hC[1]
-	
-	#las paginas que no existen se dejan en blanco
-	cS=cutStack(nX,nY,nPaginasMult,nPliegos,w.to_f,h.to_f)
-	for i in 0...cS.size
-		if cS[i].to_i > nPaginas then
-			cS[i]="{}"
-		end
-	end
-	cS=cS.join(",")
-
-	cutted=directorio+"/"+"cutStack.tex"
-	File.open(cutted, 'w') do |cutStack|
-		cutStack.puts "\\documentclass{report}"
-		cutStack.puts "\\usepackage{pdfpages}"
-		cutStack.puts "\\usepackage{geometry}"
-		cutStack.puts "\\geometry{"
-		cutStack.puts "papersize={#{wP}#{wP_["unidad"]},#{hP}#{hP_["unidad"]}},"
-		cutStack.puts "left=0mm,"#posibilidad de márgenes
-		cutStack.puts "right=0mm,"
-		cutStack.puts "top=0mm,"
-		cutStack.puts "bottom=0mm,"
-		cutStack.puts "ignoreall,"
-		cutStack.puts "headsep=0mm,"
-		cutStack.puts "headheight=0mm,"
-		cutStack.puts "foot=0mm,"
-		cutStack.puts "marginpar=0mm"
-		cutStack.puts "}"
-		cutStack.puts "\\begin{document}"
-		cutStack.puts "\\includepdf[pages={#{cS}},nup=#{nX}x#{nY},noautoscale, frame, width=#{w}#{w_["unidad"]}, height=#{h}#{h_["unidad"]}]{#{temp}}"
-		cutStack.puts "\\end{document}"
-	end
-	
-	tIni=Time.now
-	pdflatex=`#{$requerimientos["pdflatex"]} #{cutted}`
+  	puts "::::::::::::cut&Stack::::::::::::"#blink blink
+    puts "nX:"+nXm.to_s
+    puts "nY:"+nY.to_s
+    puts "nPaginas:"+nPaginasMult.to_s
+    puts "nPliegos:"+nPliegos.to_s
+    puts "ancho:"+w.to_s+" "+w_["unidad"]
+    puts "alto:"+h.to_s+" "+h_["unidad"]
+    puts "anchoPliego:"+wP.to_s+" "+wP_["unidad"]
+    puts "altoPliego:"+hP.to_s+" "+hP_["unidad"]
+  tIni=Time.now
+    imponerStack(nX, nY, w, h, wP, hP, nPaginas, nPaginasMult, nPliegos, directorio, temp, w_, h_, wP_, hP_)
 	tFin=Time.now
-	t=tFin-tIni
-	puts "cut&Stack: "+t.to_s+" segundos"
-
+  t=tFin-tIni
+  puts "cut&Stack: "+t.to_s+" segundos"
 	#lo devuelvo
 	if salida != nil then
 		entrada=salida
