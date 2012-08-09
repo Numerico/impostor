@@ -308,6 +308,10 @@ if nPaginas==0 then
 		nPaginas=nPaginasReal
 		mensajes.push(MensajeDato.new(1, "paginas", 3))#info
 	end
+else
+  if nPaginas < nPaginasReal then
+    nPaginasReal=nPaginas
+  end
 end
 #no se cuantos pliegos
 if nX!=0 and nY!=0 then
@@ -336,10 +340,8 @@ if cuadernillos then
 end
 #nPaginas multiplo de nX*nY
 if nX*nY!=0 and nPaginas%(nX*nY)!=0 then
-	nPaginasMult=(nPaginas/(nX*nY)+1)*(nX*nY)
-	mensajes.push(Mensaje.new(1, "El pdf tiene #{nPaginas} paginas, que impuestas en #{nX}x#{nY} son #{nPaginasMult} paginas"))
-else
-	nPaginasMult=nPaginas
+	nPaginas=(nPaginas/(nX*nY)+1)*(nX*nY)
+	mensajes.push(Mensaje.new(1, "El pdf tiene #{nPaginas} paginas, que impuestas en #{nX}x#{nY} son #{nPaginas} paginas"))
 end
 
 #TODO ¿ROTAR? si se gasta menos espacio por pliego o en total da menos pliegos...
@@ -355,7 +357,7 @@ else
 	puts "::::::::::::cut&Stack::::::::::::"#blink blink
 	puts "nX:"+nXm.to_s
 	puts "nY:"+nY.to_s
-	puts "nPaginas:"+nPaginasMult.to_s
+	puts "nPaginas:"+nPaginas.to_s
 	puts "nPliegos:"+nPliegos.to_s
 	puts "ancho:"+w.to_s+" "+w_["unidad"]
 	puts "alto:"+h.to_s+" "+h_["unidad"]
@@ -376,7 +378,7 @@ else
 	h_["unidad"]=hC[1]
 	
 	#las paginas que no existen se dejan en blanco
-	cS=cutStack(nX,nY,nPaginasMult,nPliegos,w.to_f,h.to_f)
+	cS=cutStack(nX,nY,nPaginas,nPliegos,w.to_f,h.to_f)
 	for i in 0...cS.size
 		if cS[i].to_i > nPaginasReal then
 			cS[i]="{}"
