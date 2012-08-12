@@ -284,7 +284,30 @@ def validacion(impostor)
     end
   end
   if impostor.cuadernillos then
-    impostor.bookletz=booklets(impostor.cuadernillosPorCostura, impostor.nPaginas, impostor.nPaginasReal)
+    #
+    impostor.nPaginas=mult4(impostor.nPaginas)
+    if impostor.cuadernillosPorCostura==0 then
+      pagsEnCuadernillo=impostor.nPaginas#todos unos dentro de otros
+    else
+      pagsEnCuadernillo=impostor.cuadernillosPorCostura*4
+    end
+    #
+    q=nil
+    max = (impostor.nPaginas/pagsEnCuadernillo).ceil
+    if max*pagsEnCuadernillo>impostor.nPaginas then
+      anterior=pagsEnCuadernillo*(max-1)
+      q=impostor.nPaginas-anterior
+      if q%4!=0 then
+        q=((q/4)+1)*4
+      end
+      if anterior+q < max*pagsEnCuadernillo then
+        if !reducirUltimo(impostor.cuadernillosPorCostura, max*pagsEnCuadernillo-impostor.nPaginas, q/4, (anterior+q)-impostor.nPaginas) then
+          q=nil
+        end#TODO sugerencia
+      end
+    end
+    #
+    impostor.bookletz=booklets(pagsEnCuadernillo, impostor.nPaginas, impostor.nPaginasReal, q)
     impostor.nPaginas=impostor.bookletz.length/2
   end
   #nPaginas multiplo de nX*nY
@@ -571,13 +594,8 @@ def self.redondear(n)#TODO por BUG de alchemist (ruby 1.9 tiene round(3))
 end
 
 #agrupa en cuadernillos
-def self.booklets(cuadernillosPorCostura, paginas, paginasReal)
-  paginas=mult4(paginas)
-  if cuadernillosPorCostura==0 then
-    pagsEnCuadernillo=paginas#todos unos dentro de otros
-  else
-    pagsEnCuadernillo=cuadernillosPorCostura*4
-  end
+def self.booklets(pagsEnCuadernillo, paginas, paginasReal, q)
+  
   arreglo=[]
   van=0
   for i in 0...(paginas.to_f/pagsEnCuadernillo).ceil
@@ -588,19 +606,13 @@ def self.booklets(cuadernillosPorCostura, paginas, paginasReal)
     inicio=van+1
     fin=van+pagsEnCuadernillo
     
-    if fin>paginas then
-      q=paginas-van
-      if q%4!=0 then
-        q=((q/4)+1)*4
-      end
-      if van+q < fin then
-        if reducirUltimo(cuadernillosPorCostura, fin-paginas, q/4, (van+q)-paginasReal) then#TODO sugerencia
+    #
+    if fin>paginas and q!=nil then
           pagsEnCuadernillo=q
           fin=van+q
-        end
-      end
     end
     #
+    
     booklet=unaDentroDeOtra(paginasReal, pagsEnCuadernillo, inicio, fin)
     arreglo.concat(booklet)
   end
@@ -612,7 +624,7 @@ def self.mult4(paginasEnPliego)
   paginas=paginasEnPliego
   if paginasEnPliego%4 != 0 then
     paginas=((paginasEnPliego/4)+1)*4
-    puts "se necesitaran #{paginas}p para imponer #{paginasEnPliego}p en #{paginas/4} cuadernillos plegables"#TODO mensaje
+    puts "se necesitaran #{paginas}p para imponer #{paginasEnPliego}p en #{paginas/4} cuadernillos plegables"#TODO mensaje, no aquí?
   else
     paginas=paginasEnPliego
   end
