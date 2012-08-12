@@ -2,10 +2,14 @@
 module 	Clases
   
 class Imposicion
-  attr_accessor :w, :w_, :wP, :wP_, :nX, :wReal, :h, :h_, :hP, :hP_, :nY, :hReal, :size, :cuadernillos, :nPaginas, :nPliegos, :nPaginasReal
+  attr_accessor :w, :w_, :wP, :wP_, :nX, :wReal, :h, :h_, :hP, :hP_, :nY, :hReal, :size, :cuadernillos, :nPaginas, :nPliegos, :nPaginasReal, :cuadernillosPorCostura, :bookletz
   
   def to_s
-    str="nX:"+@nXm.to_s+"\n"
+    nXm=@nX
+    if @cuadernillos then
+      nXm*=2
+    end
+    str="nX:"+nXm.to_s+"\n"
     str+="nY:"+@nY.to_s+"\n"
     str+="nPaginas:"+@nPaginas.to_s+"\n"
     str+="nPliegos:"+@nPliegos.to_s+"\n"

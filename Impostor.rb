@@ -95,12 +95,7 @@ puts "::::::::::::impostor::::::::::::"#blink blink
 impostor=Clases::Imposicion.new
 
 #1° REQUEST (archivo)
-#PDFINFO
-pdfinfo = `#{$requerimientos["pdfinfo"]} -box #{temp}`
-impostor.nPaginasReal=Metodos.paginasdelpdf(pdfinfo)
-impostor.size=Metodos.pagesize(pdfinfo)
-impostor.wReal=impostor.size["ancho"]
-impostor.hReal=impostor.size["alto"]
+Metodos.pdfinfo(impostor, temp)
 
 #2° REQUEST (parametros)
 #INPUT
@@ -134,8 +129,8 @@ if impostor.cuadernillos then
   #Nuevos parametros
   #TODO COSTURAS en total
   puts "cXC - cuadernillos por costura (0->todos unos dentro de otros, 1->todos uno al lado de otro o n-> de a n cuadernillos uno dentro de otro)"
-  cuadernillosPorCostura=Metodos.input("cXC:")
-  cuadernillosPorCostura=cuadernillosPorCostura["numero"]
+  impostor.cuadernillosPorCostura=Metodos.input("cXC:")
+  impostor.cuadernillosPorCostura=impostor.cuadernillosPorCostura["numero"]
 
   impostor.nX=impostor.nX/2
   puts "como imponemos en cuadernillos, tomamos la mitad de paginas horizontalmente"#TODO mensaje
@@ -145,6 +140,7 @@ if impostor.cuadernillos then
 end
 
 #2° VALIDACION
+puts "::::::::::::mensajes:::::::::::::"#blink blink
 mensajes=Metodos.validacion(impostor)
 #TODO si hay error mostrar solo errores
 valido=true
@@ -161,8 +157,9 @@ if !valido then
 	exit
 else
   if impostor.cuadernillos then
+    puts "::::::::::::booklets:::::::::::::"#blink blink
     tIni=Time.now
-  	  Metodos.imponerBooklet(directorio, bookletz.join(","), temp, $requerimientos, impostor.w_, impostor.h_)#pdflatex TODO 1 sola vez?
+  	  Metodos.imponerBooklet(impostor, directorio, temp)#pdflatex TODO 1 sola vez?
   	tFin=Time.now
     t=tFin-tIni
     puts "booklets: "+t.to_s+" segundos"
@@ -170,7 +167,7 @@ else
   puts "::::::::::::cut&Stack::::::::::::"#blink blink
   puts impostor.to_s
   tIni=Time.now
-    Metodos.imponerStack(impostor)
+    Metodos.imponerStack(impostor, directorio, temp)
 	tFin=Time.now
   t=tFin-tIni
   puts "cut&Stack: "+t.to_s+" segundos"
