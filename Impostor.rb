@@ -18,19 +18,15 @@ salida=ARGV.shift
 
 #paquetes
 $requerimientos=Hash.new
-$requerimientos["pdflatex"]="/usr/bin/pdflatex"#TODO pasarle el puro comando
-$requerimientos["pdfinfo"]="/usr/bin/pdfinfo"
+$requerimientos["pdflatex"]="pdflatex"
+$requerimientos["pdfinfo"]="pdfinfo"
 #checks
 $requerimientos.each do |k,v|
-if File.file?(v) then
-	if !File.executable?(v) or !File.executable_real?(v) then
-	puts k+" no es ejecutable"
-	exit
-	end
-else
-puts "no hay "+k
-exit
-end
+  `which #{v}`
+  if !$?.success? then
+    puts "#{v} no es ejecutable"
+    exit
+  end  
 end
 
 #archivos
@@ -180,7 +176,9 @@ else
 end
 
 ensure
-#limpio todo, aunque se caiga
-`rm -r #{directorio}`
+  #limpio todo, aunque se caiga
+  if directorio!=nil then
+    `rm -r #{directorio}`
+  end
 end
 #GAME OVER
