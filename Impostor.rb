@@ -3,24 +3,24 @@ begin
 #links
 require 'Clases'
 require 'Metodos'
-
+#
 require 'rubygems'
 require 'alchemist'
 require 'uuidtools'
 require 'fileutils'
 
+########
+#CONSOLA
+
 #vars
 entrada=ARGV.shift
 salida=ARGV.shift
 
-#CONFIGURACIONES TODO cómo decírselas una sola vez (instalación)
-work="/tmp/impostor"
-#TODO Y cómo testear esto en Rails? Prueba Unitaria de gem?
-#TODO podría pasársele el puro comando
+#paquetes
 $requerimientos=Hash.new
-$requerimientos["pdflatex"]="/usr/bin/pdflatex"
+$requerimientos["pdflatex"]="/usr/bin/pdflatex"#TODO pasarle el puro comando
 $requerimientos["pdfinfo"]="/usr/bin/pdfinfo"
-#CHECKS
+#checks
 $requerimientos.each do |k,v|
 if File.file?(v) then
 	if !File.executable?(v) or !File.executable_real?(v) then
@@ -33,7 +33,8 @@ exit
 end
 end
 
-#ARCHIVOS
+#archivos
+work="/tmp/impostor"
 #probamos que exista el directorio de trabajo
 if File.exists?(work) then
 	#y que sea escribible
@@ -87,287 +88,89 @@ if salida!=nil then
 end
 
 puts "::::::::::::impostor::::::::::::"#blink blink
+
+#####
+#GEMA
+
+impostor=Clases::Imposicion.new
+
+#1° REQUEST (archivo)
+#PDFINFO
+pdfinfo = `#{$requerimientos["pdfinfo"]} -box #{temp}`
+impostor.nPaginasReal=Metodos.paginasdelpdf(pdfinfo)
+impostor.size=Metodos.pagesize(pdfinfo)
+impostor.wReal=impostor.size["ancho"]
+impostor.hReal=impostor.size["alto"]
+
+#2° REQUEST (parametros)
 #INPUT
-w_=Metodos.input("w:")
-h_=Metodos.input("h:")
-wP_=Metodos.input("W:")
-hP_=Metodos.input("H:")
+impostor.w_=Metodos.input("w:")
+impostor.h_=Metodos.input("h:")
+impostor.wP_=Metodos.input("W:")
+impostor.hP_=Metodos.input("H:")
 nX_=Metodos.input("nX:")
 nY_=Metodos.input("nY:")
 nPaginas_=Metodos.input("nPaginas:")
 nPliegos_=Metodos.input("nPliegos:")
+impostor.cuadernillos = Metodos.enBooklets()
 #con unidad
-w=w_["numero"].send(w_["unidad"])
-h=h_["numero"].send(h_["unidad"])
-wP=wP_["numero"].send(wP_["unidad"])
-hP=hP_["numero"].send(hP_["unidad"])
+impostor.w=impostor.w_["numero"].send(impostor.w_["unidad"])
+impostor.h=impostor.h_["numero"].send(impostor.h_["unidad"])
+impostor.wP=impostor.wP_["numero"].send(impostor.wP_["unidad"])
+impostor.hP=impostor.hP_["numero"].send(impostor.hP_["unidad"])
 #sin unidad
-nX=nX_["numero"].to_f.floor
-nY=nY_["numero"].to_f.floor
-nPaginas=nPaginas_["numero"].to_f.floor
-nPliegos=nPliegos_["numero"].to_f.floor
+impostor.nX=nX_["numero"].to_f.floor
+impostor.nY=nY_["numero"].to_f.floor
+impostor.nPaginas=nPaginas_["numero"].to_f.floor
+impostor.nPliegos=nPliegos_["numero"].to_f.floor
 
-cuadernillos = Metodos.enBooklets()
-#cuadernitos
-if cuadernillos then
-  #unidades
-  if nX%2!=0 then
-    nX=Metodos.exigePar(nX) #TODO sugerencia si + o -
-  end 
+#1° VALIDACION (cuadernillos) - javascripteable
+if impostor.cuadernillos then
+  
+  if impostor.nX%2!=0 then
+    impostor.nX=Metodos.exigePar(impostor.nX) #TODO sugerencia si + o -
+  end
+  
+  #Nuevos parametros
   #TODO COSTURAS en total
   puts "cXC - cuadernillos por costura (0->todos unos dentro de otros, 1->todos uno al lado de otro o n-> de a n cuadernillos uno dentro de otro)"
   cuadernillosPorCostura=Metodos.input("cXC:")
   cuadernillosPorCostura=cuadernillosPorCostura["numero"]
-  
-  nX=nX/2
-  puts "como imponemos en cuadernillos, tomamos la mitad de paginas horizontalmente"#TODO mensaje, quizas para una interfaz explicitar mas
-  w=w*2
 
-  w_["numero"]=w
-  puts "como imponemos en cuadernillos, tomamos una pagina del doble de ancho"
+  impostor.nX=impostor.nX/2
+  puts "como imponemos en cuadernillos, tomamos la mitad de paginas horizontalmente"#TODO mensaje
+  impostor.w=impostor.w*2
+  impostor.w_["numero"]=impostor.w
+  puts "como imponemos en cuadernillos, tomamos una pagina del doble de ancho"#TODO mensaje
 end
 
-#DENTRO DEL GEM
-
-#1 REQUEST (archivo)
-#PDFINFO se ejecuta una sola vez
-pdfinfo = `#{$requerimientos["pdfinfo"]} -box #{temp}`
-nPaginasReal=Metodos.paginasdelpdf(pdfinfo)
-size=Metodos.pagesize(pdfinfo)
-wReal=size["ancho"]
-hReal=size["alto"]
-
-#2 REQUEST (parametros)
-
-#VALIDACION
-mensajes=[]
-#HORIZONTALMENTE
-if w!=0.point then
-	if wP!=0.point then
-		if nX==0 then
-			nX=(wP/w).floor
-			wP=wP_["numero"].send(wP_["unidad"])#operación alchemist cambia el operando
-			if nX==0 then
-				mensajes.push(Clases::MensajeDato.new(3, "horizontal", 5))#error
-			else
-				mensajes.push(Clases::MensajeDato.new(1, "horizontal", 1))#info
-			end
-		end
-	elsif nX!=0 then
-		if wP==0.point then
-			wP_["numero"]=nX*w.to_f#actualiza para no perderlo en operacion de medidas
-			wP=wP_["numero"].send(w_["unidad"])
-			wP_["unidad"]=w_["unidad"]
-			mensajes.push(Clases::MensajeDato.new(1, "horizontal", 2))#info
-		end
-	else
-		mensajes.push(Clases::MensajeDato.new(3, "horizontal", 1))#error
-	end
-elsif wP!=0.point then
-	if nX!=0 then
-		if escalado("horizontalmente") then
-			w=(wP.to_f/nX).send(wP_["unidad"])
-			w_["numero"]=w
-			w_["unidad"]=wP_["unidad"]
-			mensajes.push(Clases::MensajeDato.new(1, "horizontal", 3))#info
-		else
-			w=wReal
-			if cuadernillos then
-				w=w*2
-				w_["numero"]=w
-			end
-			w_["unidad"]=size["unidad"]
-			mensajes.push(Clases::MensajeDato.new(1, "horizontal", 4))#info
-		end
-	else	
-		w=wReal
-		if cuadernillos then
-			w=w*2
-			w_["numero"]=w
-		end
-		w_["unidad"]=size["unidad"]
-		mensajes.push(Clases::MensajeDato.new(1, "horizontal", 4))#info
-		nX=(wP/w).floor
-		wP=wP_["numero"].send(wP_["unidad"])
-		if nX==0 then
-			mensajes.push(Clases::MensajeDato.new(3, "horizontal", 5))#error
-		else	
-			mensajes.push(Clases::MensajeDato.new(1, "horizontal", 1))#info
-		end
-	end
-elsif nX!=0 then
-	w=wReal
-	if cuadernillos then
-		w=w*2
-		w_["numero"]=w
-	end
-	w_["unidad"]=size["unidad"]
-	mensajes.push(Clases::MensajeDato.new(1, "horizontal", 4))#info
-	wP_["numero"]=nX*w.to_f
-	wP=wP_["numero"].send(w_["unidad"])
-	wP_["unidad"]=w_["unidad"]
-	mensajes.push(Clases::MensajeDato.new(1, "horizontal", 2))#info
-else
-	mensajes.push(Clases::MensajeDato.new(3, "horizontal", 4))#error
+#2° VALIDACION
+mensajes=Metodos.validacion(impostor)
+#TODO si hay error mostrar solo errores
+valido=true
+mensajes.each do |mensaje|
+  puts mensaje.to_s
+  if mensaje.level==3 then
+    valido=false
+  end
 end
-#VERTICALMENTE
-if h!=0.point then
-	if hP!=0.point then
-		if nY==0 then
-			nY=(hP/h).floor
-			hP=hP_["numero"].send(hP_["unidad"])
-			if nY==0 then
-				mensajes.push(Clases::MensajeDato.new(3, "vertical", 5))#error
-			else	
-				mensajes.push(Clases::MensajeDato.new(1, "vertical", 1))#info
-			end
-		end
-	elsif nY!=0 then
-		if hP==0.point then
-			hP_["numero"]=nY*h.to_f
-			hP=hP_["numero"].send(h_["unidad"])
-			hP_["unidad"]=h_["unidad"]
-			mensajes.push(Clases::MensajeDato.new(1, "vertical", 2))#info
-		end
-	else
-		mensajes.push(Clases::MensajeDato.new(3, "vertical", 1))#error
-	end
-elsif hP!=0.point then
-	if nY!=0 then
-		if escalado("verticalmente") then
-			h=(hP.to_f/nY).send(hP_["unidad"])
-			h_["numero"]=h
-			h_["unidad"]=hP_["unidad"]
-			mensajes.push(Clases::MensajeDato.new(1, "vertical", 3))#info
-		else
-			h=hReal
-			h_["numero"]=h
-			h_["unidad"]=size["unidad"]
-			mensajes.push(Clases::MensajeDato.new(1, "vertical", 4))#info
-		end
-	else
-		#deducimos del pdf no mas
-		h=hReal
-		h_["numero"]=h
-		h_["unidad"]=size["unidad"]
-		mensajes.push(Clases::MensajeDato.new(1, "vertical", 4))#info
-		nY=(hP/h).floor
-		hP=hP_["numero"].send(hP_["unidad"])
-		if nY==0 then
-			mensajes.push(Clases::MensajeDato.new(3, "vertical", 5))#error
-		else
-			mensajes.push(Clases::MensajeDato.new(1, "vertical", 1))#info
-		end
-	end
-elsif nY!=0 then
-	h=hReal
-	h_["numero"]=h
-	h_["unidad"]=size["unidad"]
-	mensajes.push(Clases::MensajeDato.new(1, "vertical", 4))#info
-	hP_["numero"]=nY*h.to_f
-	hP=hP_["numero"].send(h_["unidad"])
-	hP_["unidad"]=h_["unidad"]
-	mensajes.push(Clases::MensajeDato.new(1, "vertical", 2))#info
-else
-	mensajes.push(Clases::MensajeDato.new(3, "vertical", 4))#error
-end
-#MEDIDAS
-if Metodos.redondear(nX*w.to_f) > Metodos.redondear(wP.to(w_["unidad"]).to_f) then
-	mensajes.push(Clases::MensajeMedida.new(3, "horizontal", [nX, w_, wP_]))#error
-elsif nX>0 and (nX*w.to_f).send(w_["unidad"]) < wP then
-	sobra=wP-(nX*w.to_f).send(w_["unidad"])
-	wP=wP_["numero"].send(wP_["unidad"])
-	mensajes.push(Clases::MensajeMedida.new(2, "horizontal", [sobra, wP_["unidad"]]))#warn
-end
-if Metodos.redondear(nY*h.to_f) > Metodos.redondear(hP.to(h_["unidad"]).to_f) then
-	mensajes.push(Clases::MensajeMedida.new(3, "vertical", [nY, h_, hP_]))#error
-elsif nY>0 and (nY*h.to_f).send(h_["unidad"]) < hP then
-	sobra=hP-(nY*h.to_f).send(h_["unidad"])
-	hP=hP_["numero"].send(hP_["unidad"])
-	mensajes.push(Clases::MensajeMedida.new(2, "vertical", [sobra, hP_["unidad"]]))#warn
-end
-#PAGINAS
-nXm=nX
-if cuadernillos then
-	nXm*=2
-end
-if nPaginas==0 then
-	if nPliegos!=0 then
-		nCaben=nPliegos*nXm*nY
-		if !todasPag(nPliegos, nXm, nY, nCaben, nPaginasReal) then
-			nPaginas=nCaben
-			if nCaben <= nPaginas then
-				mensajes.push(Clases::MensajeDato.new(1, "paginas", 1))#info
-			else
-				mensajes.push(Clases::MensajeDato.new(3, "paginas", 1))#error	
-			end
-		else
-			nPaginas=nPaginasReal
-			mensajes.push(Clases::MensajeDato.new(1, "paginas", 3))#info
-		end
-	else
-		nPaginas=nPaginasReal
-		mensajes.push(Clases::MensajeDato.new(1, "paginas", 3))#info
-	end
-end
-#no se cuantos pliegos
-if nX!=0 and nY!=0 then
-	nPliegosCalc=(nPaginas.to_f/(nXm*nY)).ceil
-	if nPliegos==0 then
-		nPliegos=nPliegosCalc
-		#TODO quizas tiene que ser siempre nPliegos%2==0
-		if cuadernillos and nPliegos%2!=0 then
-			puts "como son cuadernillos lado y lado los pliegos no pueden ser impares, se toman #{nPliegos}+1"#TODO mensaje
-			nPliegos=(nPliegos.to_f/2).ceil*2
-			nPaginas=nPliegos*nXm*nY
-		end
-		mensajes.push(Clases::MensajeDato.new(1, "paginas", 2))#info
-	else
-		if nPliegos<nPliegosCalc then
-			faltan=nPliegosCalc-nPliegos#error
-			mensajes.push(Clases::MensajeDato.new(3, "pliegos", faltan))#error	
-		elsif nPliegos>nPliegosCalc then
-			sobran=nPliegos-nPliegosCalc
-			mensajes.push(Clases::MensajeDato.new(2, "pliegos", sobran))#warn
-		end
-	end
-end
-if cuadernillos then
-  bookletz=Metodos.booklets(cuadernillosPorCostura, nPaginas, nPaginasReal)
-  nPaginas=bookletz.length/2
-end
-#nPaginas multiplo de nX*nY
-if nX*nY!=0 and nPaginas%(nX*nY)!=0 then
-	nPaginasMult=(nPaginas/(nX*nY)+1)*(nX*nY)
-	mensajes.push(Clases::Mensaje.new(1, "El pdf tiene #{nPaginas} paginas, que impuestas en #{nX}x#{nY} son #{nPaginasMult} paginas"))
-else
-	nPaginasMult=nPaginas
-end
-#TODO ¿ROTAR? si se gasta menos espacio por pliego o en total da menos pliegos...
 
 #EJECUCION
-if !Metodos.validar(mensajes) then
-	puts "el programa no se ejecutara"
+if !valido then
+	puts "el programa no se ejecutara"#TODO mensaje
 	exit
 else
-	if cuadernillos then
-	  tIni=Time.now
-		  Metodos.imponerBooklet(directorio, bookletz.join(","), temp, $requerimientos, w_, h_)#pdflatex TODO 1 sola vez?
-		tFin=Time.now
+  if impostor.cuadernillos then
+    tIni=Time.now
+  	  Metodos.imponerBooklet(directorio, bookletz.join(","), temp, $requerimientos, impostor.w_, impostor.h_)#pdflatex TODO 1 sola vez?
+  	tFin=Time.now
     t=tFin-tIni
     puts "booklets: "+t.to_s+" segundos"
-	end
-  	puts "::::::::::::cut&Stack::::::::::::"#blink blink
-    puts "nX:"+nXm.to_s
-    puts "nY:"+nY.to_s
-    puts "nPaginas:"+nPaginasMult.to_s
-    puts "nPliegos:"+nPliegos.to_s
-    puts "ancho:"+w.to_s+" "+w_["unidad"]
-    puts "alto:"+h.to_s+" "+h_["unidad"]
-    puts "anchoPliego:"+wP.to_s+" "+wP_["unidad"]
-    puts "altoPliego:"+hP.to_s+" "+hP_["unidad"]
+  end
+  puts "::::::::::::cut&Stack::::::::::::"#blink blink
+  puts impostor.to_s
   tIni=Time.now
-    Metodos.imponerStack(nX, nY, w, h, wP, hP, nPaginas, nPaginasMult, nPliegos, directorio, temp, w_, h_, wP_, hP_)
+    Metodos.imponerStack(impostor)
 	tFin=Time.now
   t=tFin-tIni
   puts "cut&Stack: "+t.to_s+" segundos"

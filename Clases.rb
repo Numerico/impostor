@@ -1,5 +1,22 @@
 #Ruby without rails
 module 	Clases
+  
+class Imposicion
+  attr_accessor :w, :w_, :wP, :wP_, :nX, :wReal, :h, :h_, :hP, :hP_, :nY, :hReal, :size, :cuadernillos, :nPaginas, :nPliegos, :nPaginasReal
+  
+  def to_s
+    str=""
+    str+="nX:"+@nXm.to_s
+    str+="nY:"+@nY.to_s
+    str+="nPaginas:"+@nPaginasMult.to_s
+    str+="nPliegos:"+@nPliegos.to_s
+    str+="ancho:"+@w.to_s+" "+@w_["unidad"]
+    str+="alto:"+@h.to_s+" "+@h_["unidad"]
+    str+="anchoPliego:"+@wP.to_s+" "+@wP_["unidad"]
+    str+="altoPliego:"+@hP.to_s+" "+@hP_["unidad"]
+    return str
+  end
+end
 
 class Posicion
 	def initialize(mC,mP,t)
@@ -55,6 +72,7 @@ class Mensaje
 		return @retorno
 	end 
 end
+
 class MensajeDato < Mensaje
 	attr_reader :tipo, :numero
 	def initialize(level, tipo, numero)
@@ -141,6 +159,7 @@ class MensajeDato < Mensaje
 	
 	end
 end
+
 class MensajeMedida < Mensaje
 	def initialize(level, tipo, args)
 		@mensaje=deducirMensaje(level, tipo, args)

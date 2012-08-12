@@ -38,6 +38,256 @@ def enBooklets()
   end
 end
 
+def exigePar(nX)
+  puts "para imponer en cuadernillos tienen que caber horizontalmente en numeros pares pero ud especifico nX:#{nX}."
+  nX=input("nX:")
+  nX=nX["numero"]
+  if nX%2!=0 then
+    exigePar(nX)
+  end
+  return nX     
+end
+
+def escalado(tipo)
+  if tipo=="horizontalmente" then
+    puts "no especifico ancho de pagina pero si ancho de pliego y numero de paginas por pliego "+tipo 
+  else
+    puts "no especifico alto de pagina pero si alto de pliego y numero de paginas por pliego "+tipo
+  end
+  STDOUT.puts("¿escalar "+tipo+"? (y/n)")
+    escalar=STDIN.gets.to_s
+  if escalar[0]==121 then#Y
+    return true
+  elsif escalar[0]==110 then#N
+    return false
+  else
+    escalado(tipo)
+  end
+end
+
+def todasPag(nPliegos, nX, nY, caben, tiene)
+  STDOUT.puts("el pdf tiene #{tiene.to_i} paginas, pero en #{nPliegos.to_i} de #{nX}x#{nY} caben #{caben.to_i} paginas ¿usar las del pdf? (y/n)")
+    escalar=STDIN.gets.to_s
+  if escalar[0]==121 then#Y
+    return true
+  elsif escalar[0]==110 then#N
+    return false
+  else
+    escalado(tipo)
+  end
+end
+
+def validacion(impostor)
+  mensajes=[]
+  #HORIZONTALMENTE
+  if impostor.w!=0.point then
+    if impostor.wP!=0.point then
+      if impostor.nX==0 then
+        impostor.nX=(wP/w).floor
+        impostor.wP=impostor.wP_["numero"].send(impostor.wP_["unidad"])#operación alchemist cambia el operando
+        if impostor.nX==0 then
+          mensajes.push(Clases::MensajeDato.new(3, "horizontal", 5))#error
+        else
+          mensajes.push(Clases::MensajeDato.new(1, "horizontal", 1))#info
+        end
+      end
+    elsif impostor.nX!=0 then
+      if impostor.wP==0.point then
+        impostor.wP_["numero"]=impostor.nX*impostor.w.to_f#actualiza para no perderlo en operacion de medidas
+        impostor.wP=impostor.wP_["numero"].send(impostor.w_["unidad"])
+        impostor.wP_["unidad"]=impostor.w_["unidad"]
+        mensajes.push(Clases::MensajeDato.new(1, "horizontal", 2))#info
+      end
+    else
+      mensajes.push(Clases::MensajeDato.new(3, "horizontal", 1))#error
+    end
+  elsif impostor.wP!=0.point then
+    if impostor.nX!=0 then
+      if Metodos.escalado("horizontalmente") then
+        impostor.w=(impostor.wP.to_f/impostor.nX).send(impostor.wP_["unidad"])
+        impostor.w_["numero"]=impostor.w
+        impostor.w_["unidad"]=impostor.wP_["unidad"]
+        mensajes.push(Clases::MensajeDato.new(1, "horizontal", 3))#info
+      else
+        impostor.w=impostor.wReal
+        if impostor.cuadernillos then
+          impostor.w=impostor.w*2
+          impostor.w_["numero"]=impostor.w
+        end
+        impostor.w_["unidad"]=impostor.size["unidad"]
+        mensajes.push(Clases::MensajeDato.new(1, "horizontal", 4))#info
+      end
+    else  
+      impostor.w=impostor.wReal
+      if impostor.cuadernillos then
+        impostor.w=impostor.w*2
+        impostor.w_["numero"]=impostor.w
+      end
+      impostor.w_["unidad"]=impostor.size["unidad"]
+      mensajes.push(Clases::MensajeDato.new(1, "horizontal", 4))#info
+      impostor.nX=(impostor.wP/impostor.w).floor
+      impostor.wP=impostor.wP_["numero"].send(impostor.wP_["unidad"])
+      if impostor.nX==0 then
+        mensajes.push(Clases::MensajeDato.new(3, "horizontal", 5))#error
+      else  
+        mensajes.push(Clases::MensajeDato.new(1, "horizontal", 1))#info
+      end
+    end
+  elsif impostor.nX!=0 then
+    impostor.w=impostor.wReal
+    if impostor.cuadernillos then
+      impostor.w=impostor.w*2
+      impostor.w_["numero"]=impostor.w
+    end
+    impostor.w_["unidad"]=impostor.size["unidad"]
+    mensajes.push(Clases::MensajeDato.new(1, "horizontal", 4))#info
+    impostor.wP_["numero"]=impostor.nX*impostor.w.to_f
+    impostor.wP=impostor.wP_["numero"].send(impostor.w_["unidad"])
+    impostor.wP_["unidad"]=impostor.w_["unidad"]
+    mensajes.push(Clases::MensajeDato.new(1, "horizontal", 2))#info
+  else
+    mensajes.push(Clases::MensajeDato.new(3, "horizontal", 4))#error
+  end
+  #VERTICALMENTE
+  if impostor.h!=0.point then
+    if impostor.hP!=0.point then
+      if impostor.nY==0 then
+        impostor.nY=(impostor.hP/impostor.h).floor
+        impostor.hP=impostor.hP_["numero"].send(impostor.hP_["unidad"])
+        if impostor.nY==0 then
+          mensajes.push(Clases::MensajeDato.new(3, "vertical", 5))#error
+        else  
+          mensajes.push(Clases::MensajeDato.new(1, "vertical", 1))#info
+        end
+      end
+    elsif impostor.nY!=0 then
+      if impostor.hP==0.point then
+        impostor.hP_["numero"]=impostor.nY*impostor.h.to_f
+        impostor.hP=impostor.hP_["numero"].send(impostor.h_["unidad"])
+        impostor.hP_["unidad"]=impostor.h_["unidad"]
+        mensajes.push(Clases::MensajeDato.new(1, "vertical", 2))#info
+      end
+    else
+      mensajes.push(Clases::MensajeDato.new(3, "vertical", 1))#error
+    end
+  elsif impostor.hP!=0.point then
+    if impostor.nY!=0 then
+      if Metodos.escalado("verticalmente") then
+        impostor.h=(impostor.hP.to_f/impostor.nY).send(impostor.hP_["unidad"])
+        impostor.h_["numero"]=impostor.h
+        impostor.h_["unidad"]=impostor.hP_["unidad"]
+        mensajes.push(Clases::MensajeDato.new(1, "vertical", 3))#info
+      else
+        impostor.h=impostor.hReal
+        impostor.h_["numero"]=impostor.h
+        impostor.h_["unidad"]=impostor.size["unidad"]
+        mensajes.push(Clases::MensajeDato.new(1, "vertical", 4))#info
+      end
+    else
+      #deducimos del pdf no mas
+      impostor.h=impostor.hReal
+      impostor.h_["numero"]=impostor.h
+      impostor.h_["unidad"]=impostor.size["unidad"]
+      mensajes.push(Clases::MensajeDato.new(1, "vertical", 4))#info
+      impostor.nY=(impostor.hP/impostor.h).floor
+      impostor.hP=impostor.hP_["numero"].send(impostor.hP_["unidad"])
+      if impostor.nY==0 then
+        mensajes.push(Clases::MensajeDato.new(3, "vertical", 5))#error
+      else
+        mensajes.push(Clases::MensajeDato.new(1, "vertical", 1))#info
+      end
+    end
+  elsif impostor.nY!=0 then
+    impostor.h=impostor.hReal
+    impostor.h_["numero"]=impostor.h
+    impostor.h_["unidad"]=impostor.size["unidad"]
+    mensajes.push(Clases::MensajeDato.new(1, "vertical", 4))#info
+    impostor.hP_["numero"]=impostor.nY*impostor.h.to_f
+    impostor.hP=impostor.hP_["numero"].send(impostor.h_["unidad"])
+    impostor.hP_["unidad"]=impostor.h_["unidad"]
+    mensajes.push(Clases::MensajeDato.new(1, "vertical", 2))#info
+  else
+    mensajes.push(Clases::MensajeDato.new(3, "vertical", 4))#error
+  end
+  #MEDIDAS
+  if redondear(impostor.nX*impostor.w.to_f) > redondear(impostor.wP.to(impostor.w_["unidad"]).to_f) then
+    mensajes.push(Clases::MensajeMedida.new(3, "horizontal", [impostor.nX, impostor.w_, impostor.wP_]))#error
+  elsif impostor.nX>0 and (impostor.nX*impostor.w.to_f).send(impostor.w_["unidad"]) < impostor.wP then
+    sobra=impostor.wP-(impostor.nX*impostor.w.to_f).send(impostor.w_["unidad"])
+    impostor.wP=impostor.wP_["numero"].send(impostor.wP_["unidad"])
+    mensajes.push(Clases::MensajeMedida.new(2, "horizontal", [sobra, impostor.wP_["unidad"]]))#warn
+  end
+  if redondear(impostor.nY*impostor.h.to_f) > redondear(impostor.hP.to(impostor.h_["unidad"]).to_f) then
+    mensajes.push(Clases::MensajeMedida.new(3, "vertical", [impostor.nY, impostor.h_, impostor.hP_]))#error
+  elsif impostor.nY>0 and (impostor.nY*impostor.h.to_f).send(impostor.h_["unidad"]) < impostor.hP then
+    sobra=impostor.hP-(impostor.nY*impostor.h.to_f).send(impostor.h_["unidad"])
+    impostor.hP=impostor.hP_["numero"].send(impostor.hP_["unidad"])
+    mensajes.push(Clases::MensajeMedida.new(2, "vertical", [sobra, impostor.hP_["unidad"]]))#warn
+  end
+  #PAGINAS
+  nXm=impostor.nX
+  if impostor.cuadernillos then
+    nXm*=2
+  end
+  if impostor.nPaginas==0 then
+    if impostor.nPliegos!=0 then
+      nCaben=impostor.nPliegos*nXm*impostor.nY
+      if !Metodos.todasPag(impostor.nPliegos, impostor.nXm, impostor.nY, nCaben, impostor.nPaginasReal) then
+        impostor.nPaginas=nCaben
+        if nCaben <= impostor.nPaginas then
+          mensajes.push(Clases::MensajeDato.new(1, "paginas", 1))#info
+        else
+          mensajes.push(Clases::MensajeDato.new(3, "paginas", 1))#error 
+        end
+      else
+        impostor.nPaginas=impostor.nPaginasReal
+        mensajes.push(Clases::MensajeDato.new(1, "paginas", 3))#info
+      end
+    else
+      impostor.nPaginas=impostor.nPaginasReal
+      mensajes.push(Clases::MensajeDato.new(1, "paginas", 3))#info
+    end
+  end
+  #no se cuantos pliegos
+  if impostor.nX!=0 and impostor.nY!=0 then
+    nPliegosCalc=(impostor.nPaginas.to_f/(nXm*impostor.nY)).ceil
+    if impostor.nPliegos==0 then
+      impostor.nPliegos=nPliegosCalc
+      #TODO quizas tiene que ser siempre nPliegos%2==0
+      if cuadernillos and impostor.nPliegos%2!=0 then
+        puts "como son cuadernillos lado y lado los pliegos no pueden ser impares, se toman #{nPliegos}+1"#TODO mensaje
+        impostor.nPliegos=(impostor.nPliegos.to_f/2).ceil*2
+        impostor.nPaginas=impostor.nPliegos*nXm*impostor.nY
+      end
+      mensajes.push(Clases::MensajeDato.new(1, "paginas", 2))#info
+    else
+      if impostor.nPliegos<nPliegosCalc then
+        faltan=nPliegosCalc-impostor.nPliegos
+        mensajes.push(Clases::MensajeDato.new(3, "pliegos", faltan))#error  
+      elsif impostor.nPliegos>nPliegosCalc then
+        sobran=impostor.nPliegos-nPliegosCalc
+        mensajes.push(Clases::MensajeDato.new(2, "pliegos", sobran))#warn
+      end
+    end
+  end
+  if impostor.cuadernillos then
+    bookletz=booklets(cuadernillosPorCostura, nPaginas, nPaginasReal)
+    impostor.nPaginas=bookletz.length/2
+  end
+  #nPaginas multiplo de nX*nY
+  if impostor.nX*impostor.nY!=0 and impostor.nPaginas%(impostor.nX*impostor.nY)!=0 then
+    nPaginasMult=(impostor.nPaginas/(impostor.nX*impostor.nY)+1)*(impostor.nX*impostor.nY)
+    mensajes.push(Clases::Mensaje.new(1, "El pdf tiene #{impostor.nPaginas} paginas, que impuestas en #{impostor.nX}x#{impostor.nY} son #{nPaginasMult} paginas"))
+  else
+    nPaginasMult=impostor.nPaginas
+  end
+  #TODO ¿ROTAR? si se gasta menos espacio por pliego o en total da menos pliegos...
+  
+  return mensajes
+end
+
+#########A primera vista los que debieran ser self
+
 def paginasdelpdf(pdfinfo)
   info = pdfinfo.chomp
   busca = /pages\s*\:\s*(\d+)/moi
@@ -71,41 +321,25 @@ def pagesize(pdfinfo)
   return retorno
 end
 
-def redondear(n)#TODO por BUG de alchemist (ruby 1.9 tiene round(3))
-  (n*1000).round/1000
-end
-
-#TODO si hay error mostrar solo errores
-def validar(mensajes)
-  valido=true
-  mensajes.each do |mensaje|
-    puts mensaje.to_s
-    if mensaje.level==3 then
-      valido=false
-    end
-  end
-  return valido
-end
-
 def imponerStack(nX, nY, w, h, wP, hP, nPaginas, nPaginasMult, nPliegos, directorio, temp, w_, h_, wP_, hP_)#TODO los ultimos 4 mandar la pura unidad
   
-  wPC=pdflatexUnit(wP, wP_["unidad"])
-  wP=wPC[0]
-  wP_["unidad"]=wPC[1]
-  hPC=pdflatexUnit(hP, hP_["unidad"])
-  hP=hPC[0]
-  hP_["unidad"]=hPC[1]
-  wC=pdflatexUnit(w, w_["unidad"])
-  w=wC[0]
-  w_["unidad"]=wC[1]
-  hC=pdflatexUnit(h, h_["unidad"])
-  h=hC[0]
-  h_["unidad"]=hC[1]
+  wPC=pdflatexUnit(impostor.wP, impostor.wP_["unidad"])
+  impostor.wP=wPC[0]
+  impostor.wP_["unidad"]=wPC[1]
+  hPC=pdflatexUnit(impostor.hP, impostor.hP_["unidad"])
+  impostor.hP=hPC[0]
+  impostor.hP_["unidad"]=hPC[1]
+  wC=pdflatexUnit(impostor.w, impostor.w_["unidad"])
+  impostor.w=wC[0]
+  impostor.w_["unidad"]=wC[1]
+  hC=pdflatexUnit(impostor.h, impostor.h_["unidad"])
+  impostor.h=hC[0]
+  impostor.h_["unidad"]=hC[1]
   
   #las paginas que no existen se dejan en blanco
-  cS=cutStack(nX,nY,nPaginasMult,nPliegos,w.to_f,h.to_f)
+  cS=cutStack(impostor.nX,impostor.nY,nPaginasMult,impostor.nPliegos,impostor.w.to_f,impostor.h.to_f)
   for i in 0...cS.size
-    if cS[i].to_i > nPaginas then
+    if cS[i].to_i > impostor.nPaginas then
       cS[i]="{}"
     end
   end
@@ -135,43 +369,6 @@ def imponerStack(nX, nY, w, h, wP, hP, nPaginas, nPaginasMult, nPliegos, directo
  
   pdflatex=`#{$requerimientos["pdflatex"]} #{cutted}`
   
-end
-
-#agrupa en cuadernillos
-def booklets(cuadernillosPorCostura, paginas, paginasReal)
-  paginas=mult4(paginas)
-  if cuadernillosPorCostura==0 then
-    pagsEnCuadernillo=paginas#todos unos dentro de otros
-  else
-    pagsEnCuadernillo=cuadernillosPorCostura*4
-  end
-  arreglo=[]
-  van=0
-  for i in 0...(paginas.to_f/pagsEnCuadernillo).ceil
-    if i!=0 then
-      van+=pagsEnCuadernillo
-    end
-
-    inicio=van+1
-    fin=van+pagsEnCuadernillo
-    #TODO sugerencia
-    if fin>paginas then
-      q=paginas-van
-      if q%4!=0 then
-        q=((q/4)+1)*4
-      end
-      if van+q < fin then
-        if reducirUltimo(cuadernillosPorCostura, fin-paginas, q/4, (van+q)-paginasReal)then
-          pagsEnCuadernillo=q
-          fin=van+q
-        end
-      end
-    end
-    #
-    booklet=unaDentroDeOtra(paginasReal, pagsEnCuadernillo, inicio, fin)
-    arreglo.concat(booklet)
-  end
-  return arreglo
 end
 
 def imponerBooklet(directorio, ordenBook, archivo, requerimientos, w_, h_)
@@ -211,18 +408,8 @@ def imponerBooklet(directorio, ordenBook, archivo, requerimientos, w_, h_)
   FileUtils.mv(directorio+"/"+"booKlet.pdf", archivo)
 end
 
-def exigePar(nX)
-  puts "para imponer en cuadernillos tienen que caber horizontalmente en numeros pares pero ud especifico nX:#{nX}."
-  nX=input("nX:")
-  nX=nX["numero"]
-  if nX%2!=0 then
-    exigePar(nX)
-  end
-  return nX     
-end
-
 #########TODO MINIMIZAR ÉSTO
-module_function :input, :enBooklets, :paginasdelpdf, :pagesize, :redondear, :validar, :imponerStack, :booklets, :imponerBooklet, :exigePar
+module_function :input, :enBooklets, :paginasdelpdf, :pagesize, :imponerStack, :imponerBooklet, :exigePar, :escalado, :todasPag, :validacion
 #########
 
 def self.myPlacePDF(nX,nY,nPaginas,nPliegos)
@@ -335,19 +522,6 @@ def self.pdflatexUnit(x, unidad)
 	end
 end
 
-#multiplo de 4
-def self.mult4(paginasEnPliego)
-	paginas=paginasEnPliego
-	if paginasEnPliego%4 != 0 then
-		paginas=((paginasEnPliego/4)+1)*4
-		#TODO mensaje
-		puts "se necesitaran #{paginas}p para imponer #{paginasEnPliego}p en #{paginas/4} cuadernillos plegables"
-	else
-		paginas=paginasEnPliego
-	end
-	return paginas
-end
-
 #crea un cuadernillo
 def self.unaDentroDeOtra(paginasReal, paginasEnCuadernillo, inicio, fin)
 	#llegan como float
@@ -372,22 +546,8 @@ def self.unaDentroDeOtra(paginasReal, paginasEnCuadernillo, inicio, fin)
 	return arreglo
 end
 
-#cortar la cola
-def reducirUltimo(cuadernillosPorCostura, x, p, x2)
-	puts "al ultimo grupo de #{cuadernillosPorCostura} cuadernillos le sobraran #{x}p"#TODO MENSAJE (1 sola vez)
-	puts "podemos reducirlo a #{p} cuadernillos, asi sobrarian #{x2}. ¿0K? (y/n)"
-	ok=STDIN.gets.to_s
-	if ok[0]==121 then#Y
-		return true
-	elsif ok[0]==110 then#N
-		return false
-	else
-		reducirUltimo(cuadernillosPorCostura, x, p, x2)
-	end
-end
-
 #TODO validar que unidad exista en alchemist
-def input2alchemist(unidad)
+def self.input2alchemist(unidad)
 	if unidad=="pt" or unidad=="pts" then
 		return "point"
 	elsif unidad=="PT" or unidad=="bp" then
@@ -397,33 +557,74 @@ def input2alchemist(unidad)
 	end
 end
 
-def escalado(tipo)
-	if tipo=="horizontalmente" then
-		puts "no especifico ancho de pagina pero si ancho de pliego y numero de paginas por pliego "+tipo 
-	else
-		puts "no especifico alto de pagina pero si alto de pliego y numero de paginas por pliego "+tipo
-	end
-	STDOUT.puts("¿escalar "+tipo+"? (y/n)")
-		escalar=STDIN.gets.to_s
-	if escalar[0]==121 then#Y
-		return true
-	elsif escalar[0]==110 then#N
-		return false
-	else
-		escalado(tipo)
-	end
+def self.redondear(n)#TODO por BUG de alchemist (ruby 1.9 tiene round(3))
+  (n*1000).round/1000
 end
 
-def todasPag(nPliegos, nX, nY, caben, tiene)
-	STDOUT.puts("el pdf tiene #{tiene.to_i} paginas, pero en #{nPliegos.to_i} de #{nX}x#{nY} caben #{caben.to_i} paginas ¿usar las del pdf? (y/n)")
-		escalar=STDIN.gets.to_s
-	if escalar[0]==121 then#Y
-		return true
-	elsif escalar[0]==110 then#N
-		return false
-	else
-		escalado(tipo)
-	end
+#agrupa en cuadernillos
+def self.booklets(cuadernillosPorCostura, paginas, paginasReal)
+  paginas=mult4(paginas)
+  if cuadernillosPorCostura==0 then
+    pagsEnCuadernillo=paginas#todos unos dentro de otros
+  else
+    pagsEnCuadernillo=cuadernillosPorCostura*4
+  end
+  arreglo=[]
+  van=0
+  for i in 0...(paginas.to_f/pagsEnCuadernillo).ceil
+    if i!=0 then
+      van+=pagsEnCuadernillo
+    end
+
+    inicio=van+1
+    fin=van+pagsEnCuadernillo
+    #TODO sugerencia
+    if fin>paginas then
+      q=paginas-van
+      if q%4!=0 then
+        q=((q/4)+1)*4
+      end
+      if van+q < fin then
+        if reducirUltimo(cuadernillosPorCostura, fin-paginas, q/4, (van+q)-paginasReal) then
+          pagsEnCuadernillo=q
+          fin=van+q
+        end
+      end
+    end
+    #
+    booklet=unaDentroDeOtra(paginasReal, pagsEnCuadernillo, inicio, fin)
+    arreglo.concat(booklet)
+  end
+  return arreglo
+end
+
+#########las que no debieran ser self pues reciben input
+
+#cortar la cola
+def self.reducirUltimo(cuadernillosPorCostura, x, p, x2)
+  puts "al ultimo grupo de #{cuadernillosPorCostura} cuadernillos le sobraran #{x}p"#TODO MENSAJE (1 sola vez)
+  puts "podemos reducirlo a #{p} cuadernillos, asi sobrarian #{x2}. ¿0K? (y/n)"
+  ok=STDIN.gets.to_s
+  if ok[0]==121 then#Y
+    return true
+  elsif ok[0]==110 then#N
+    return false
+  else
+    reducirUltimo(cuadernillosPorCostura, x, p, x2)
+  end
+end
+
+#multiplo de 4
+def self.mult4(paginasEnPliego)
+  paginas=paginasEnPliego
+  if paginasEnPliego%4 != 0 then
+    paginas=((paginasEnPliego/4)+1)*4
+    #TODO mensaje
+    puts "se necesitaran #{paginas}p para imponer #{paginasEnPliego}p en #{paginas/4} cuadernillos plegables"
+  else
+    paginas=paginasEnPliego
+  end
+  return paginas
 end
 
 end
