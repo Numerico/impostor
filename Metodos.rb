@@ -247,14 +247,17 @@ def validacion(impostor)
       impostor.nPaginas=impostor.nPaginasReal
       mensajes.push(Clases::MensajeDato.new(1, "paginas", 3))#info
     end
+  else
+    if impostor.nPaginas < impostor.nPaginasReal then
+      impostor.nPaginasReal=impostor.nPaginas
+    end
   end
   #no se cuantos pliegos
   if impostor.nX!=0 and impostor.nY!=0 then
     nPliegosCalc=(impostor.nPaginas.to_f/(nXm*impostor.nY)).ceil
     if impostor.nPliegos==0 then
       impostor.nPliegos=nPliegosCalc
-      #TODO quizas tiene que ser siempre nPliegos%2==0
-      if cuadernillos and impostor.nPliegos%2!=0 then
+      if impostor.nPliegos%2!=0 then
         puts "como son cuadernillos lado y lado los pliegos no pueden ser impares, se toman #{nPliegos}+1"#TODO mensaje
         impostor.nPliegos=(impostor.nPliegos.to_f/2).ceil*2
         impostor.nPaginas=impostor.nPliegos*nXm*impostor.nY
@@ -276,10 +279,8 @@ def validacion(impostor)
   end
   #nPaginas multiplo de nX*nY
   if impostor.nX*impostor.nY!=0 and impostor.nPaginas%(impostor.nX*impostor.nY)!=0 then
-    nPaginasMult=(impostor.nPaginas/(impostor.nX*impostor.nY)+1)*(impostor.nX*impostor.nY)
-    mensajes.push(Clases::Mensaje.new(1, "El pdf tiene #{impostor.nPaginas} paginas, que impuestas en #{impostor.nX}x#{impostor.nY} son #{nPaginasMult} paginas"))
-  else
-    nPaginasMult=impostor.nPaginas
+    impostor.nPaginas=(impostor.nPaginas/(impostor.nX*impostor.nY)+1)*(impostor.nX*impostor.nY)
+    mensajes.push(Clases::Mensaje.new(1, "El pdf tiene #{impostor.nPaginasReal} paginas, que impuestas en #{impostor.nX}x#{impostor.nY} son #{impostor.nPaginas} paginas"))
   end
   #TODO ¿ROTAR? si se gasta menos espacio por pliego o en total da menos pliegos...
   
@@ -337,9 +338,9 @@ def imponerStack(nX, nY, w, h, wP, hP, nPaginas, nPaginasMult, nPliegos, directo
   impostor.h_["unidad"]=hC[1]
   
   #las paginas que no existen se dejan en blanco
-  cS=cutStack(impostor.nX,impostor.nY,nPaginasMult,impostor.nPliegos,impostor.w.to_f,impostor.h.to_f)
+  cS=cutStack(impostor.nX,impostor.nY,impostor.nPaginas,impostor.nPliegos,impostor.w.to_f,impostor.h.to_f)
   for i in 0...cS.size
-    if cS[i].to_i > impostor.nPaginas then
+    if cS[i].to_i > impostor.nPaginasReal then
       cS[i]="{}"
     end
   end

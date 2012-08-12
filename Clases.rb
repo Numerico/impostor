@@ -5,15 +5,14 @@ class Imposicion
   attr_accessor :w, :w_, :wP, :wP_, :nX, :wReal, :h, :h_, :hP, :hP_, :nY, :hReal, :size, :cuadernillos, :nPaginas, :nPliegos, :nPaginasReal
   
   def to_s
-    str=""
-    str+="nX:"+@nXm.to_s
-    str+="nY:"+@nY.to_s
-    str+="nPaginas:"+@nPaginasMult.to_s
-    str+="nPliegos:"+@nPliegos.to_s
-    str+="ancho:"+@w.to_s+" "+@w_["unidad"]
-    str+="alto:"+@h.to_s+" "+@h_["unidad"]
-    str+="anchoPliego:"+@wP.to_s+" "+@wP_["unidad"]
-    str+="altoPliego:"+@hP.to_s+" "+@hP_["unidad"]
+    str="nX:"+@nXm.to_s+"\n"
+    str+="nY:"+@nY.to_s+"\n"
+    str+="nPaginas:"+@nPaginas.to_s+"\n"
+    str+="nPliegos:"+@nPliegos.to_s+"\n"
+    str+="ancho:"+@w.to_s+" "+@w_["unidad"]+"\n"
+    str+="alto:"+@h.to_s+" "+@h_["unidad"]+"\n"
+    str+="anchoPliego:"+@wP.to_s+" "+@wP_["unidad"]+"\n"
+    str+="altoPliego:"+@hP.to_s+" "+@hP_["unidad"]+"\n"
     return str
   end
 end
