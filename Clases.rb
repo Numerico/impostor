@@ -185,5 +185,31 @@ class MensajeMedida < Mensaje
 	end
 end
 
+class Pregunta
+  attr_accessor :ok, :yn
+  def initialize(mensaje)
+    @mensaje=mensaje
+  end
+  def metodo()
+  end
+end
+
+class PreguntaReducir < Pregunta
+  attr_reader :q
+  def initialize(cuadernillosPorCostura, paginasSobran, nCuad, sobranMenos, q)
+    @mensaje="en duro"
+    @cuadernillosPorCostura=cuadernillosPorCostura
+    @paginasSobran=paginasSobran
+    @nCuad=nCuad
+    @sobranMenos=sobranMenos
+    @q=q
+    super(@mensaje)
+  end
+  def metodo()
+    @yn=Metodos.reducirUltimo(@cuadernillosPorCostura, @paginasSobran, @nCuad, @sobranMenos)
+    @ok=true
+  end
+end
+
 end#fin módulo
 

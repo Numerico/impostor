@@ -78,17 +78,380 @@ def todasPag(nPliegos, nX, nY, caben, tiene)
   end
 end
 
+def reducirUltimo(cuadernillosPorCostura, paginasSobran, nCuad, sobranMenos)
+  puts "al ultimo grupo de #{cuadernillosPorCostura} cuadernillos le sobraran #{paginasSobran}p"#TODO MENSAJE (1 sola vez)
+  puts "podemos reducirlo a #{nCuad} cuadernillos, asi sobrarian #{sobranMenos}. ¿0K? (y/n)"
+  ok=STDIN.gets.to_s
+  if ok[0]==121 then#Y
+    return true
+  elsif ok[0]==110 then#N
+    return false
+  else
+    reducirUltimo(cuadernillosPorCostura, paginasSobran, nCuad, sobranMenos)
+  end
+end
+
+def validacionRecursiva(impostor, preguntas, mensajes)
+  retorno=validacion(impostor, preguntas, mensajes)
+  preguntas=retorno.pop
+  todoOk=true
+  preguntas.each do |k,v|
+    if !v.ok then
+      todoOk=false
+      v.metodo()
+    end
+  end
+  if !todoOk then
+    mensajes=retorno.pop
+    retorno=Metodos.validacionRecursiva(impostor, preguntas, mensajes)
+  else
+    return retorno
+  end
+end
+
 #WORK
 def pdfinfo(impostor, temp)
+  Dir.chdir($dir)
   pdfinfo = `#{$requerimientos["pdfinfo"]} -box #{temp}`
   impostor.nPaginasReal=paginasdelpdf(pdfinfo)
   impostor.size=Metodos.pagesize(pdfinfo)
   impostor.wReal=impostor.size["ancho"]
   impostor.hReal=impostor.size["alto"]
+  Dir.chdir($codeDir)
 end
 
-def validacion(impostor)
-  mensajes=[]
+def imponerStack(impostor, temp)
+  
+  wPC=pdflatexUnit(impostor.wP, impostor.wP_["unidad"])
+  impostor.wP=wPC[0]
+  impostor.wP_["unidad"]=wPC[1]
+  hPC=pdflatexUnit(impostor.hP, impostor.hP_["unidad"])
+  impostor.hP=hPC[0]
+  impostor.hP_["unidad"]=hPC[1]
+  wC=pdflatexUnit(impostor.w, impostor.w_["unidad"])
+  impostor.w=wC[0]
+  impostor.w_["unidad"]=wC[1]
+  hC=pdflatexUnit(impostor.h, impostor.h_["unidad"])
+  impostor.h=hC[0]
+  impostor.h_["unidad"]=hC[1]
+  
+  #las paginas que no existen se dejan en blanco
+  cS=cutStack(impostor.nX,impostor.nY,impostor.nPaginas,impostor.nPliegos,impostor.w.to_f,impostor.h.to_f)
+  for i in 0...cS.size
+    if cS[i].to_i > impostor.nPaginasReal then
+      cS[i]="{}"
+    end
+  end
+  cS=cS.join(",")
+
+  cutted=$dir+"/"+"cutStack.tex"
+  File.open(cutted, 'w') do |cutStack|
+    cutStack.puts "\\documentclass{report}"
+    cutStack.puts "\\usepackage{pdfpages}"
+    cutStack.puts "\\usepackage{geometry}"
+    cutStack.puts "\\geometry{"
+    cutStack.puts "papersize={#{impostor.wP}#{impostor.wP_["unidad"]},#{impostor.hP}#{impostor.hP_["unidad"]}},"
+    cutStack.puts "left=0mm,"#posibilidad de márgenes
+    cutStack.puts "right=0mm,"
+    cutStack.puts "top=0mm,"
+    cutStack.puts "bottom=0mm,"
+    cutStack.puts "ignoreall,"
+    cutStack.puts "headsep=0mm,"
+    cutStack.puts "headheight=0mm,"
+    cutStack.puts "foot=0mm,"
+    cutStack.puts "marginpar=0mm"
+    cutStack.puts "}"
+    cutStack.puts "\\begin{document}"
+    cutStack.puts "\\includepdf[pages={#{cS}},nup=#{impostor.nX}x#{impostor.nY},noautoscale, frame, width=#{impostor.w}#{impostor.w_["unidad"]}, height=#{impostor.h}#{impostor.h_["unidad"]}]{#{temp}}"
+    cutStack.puts "\\end{document}"
+  end
+  
+  #LaTeX
+  Dir.chdir($dir)
+  pdflatex=`#{$requerimientos["pdflatex"]} #{cutted}`
+  Dir.chdir($codeDir)
+  
+end
+
+def imponerBooklet(impostor, archivo)
+  #unidades latex
+  wC=pdflatexUnit(impostor.w_["numero"], impostor.w_["unidad"])
+  impostor.w=wC[0]
+  impostor.w_["unidad"]=wC[1]
+  hC=pdflatexUnit(impostor.h_["numero"], impostor.h_["unidad"])
+  impostor.h=hC[0]
+  impostor.h_["unidad"]=hC[1]
+
+  wDummy=impostor.w_["numero"].to_f#bug alchemist
+  pierpa=$dir+"/"+"booKlet.tex"
+  File.open(pierpa, 'w') do |booklet|
+    booklet.puts "\\documentclass{report}"
+    booklet.puts "\\usepackage{pdfpages}"
+    booklet.puts "\\usepackage{geometry}"
+    booklet.puts "\\geometry{"
+    booklet.puts "papersize={#{impostor.w_["numero"]}#{impostor.h_["unidad"]},#{impostor.h_["numero"]}#{impostor.h_["unidad"]}},"
+    booklet.puts "left=0mm,"#posibilidad de márgenes
+    booklet.puts "right=0mm,"
+    booklet.puts "top=0mm,"
+    booklet.puts "bottom=0mm,"
+    booklet.puts "ignoreall,"
+    booklet.puts "headsep=0mm,"
+    booklet.puts "headheight=0mm,"
+    booklet.puts "foot=0mm,"
+    booklet.puts "marginpar=0mm"
+    booklet.puts "}"
+    booklet.puts "\\begin{document}"
+    booklet.puts "\\includepdf[pages={#{impostor.bookletz.join(",")}},nup=2x1,noautoscale,width=#{wDummy/2}#{impostor.w_["unidad"]}, height=#{impostor.h_["numero"]}#{impostor.h_["unidad"]}]{#{archivo}}"
+    booklet.puts "\\end{document}"
+  end
+  #LaTeX
+  Dir.chdir($dir)
+  pdflatex=`#{$requerimientos["pdflatex"]} #{pierpa}`
+  Dir.chdir($codeDir)
+  
+  #lo devuelvo
+  FileUtils.mv($dir+"/"+"booKlet.pdf", archivo)
+end
+
+#########
+module_function :input, :enBooklets, :exigePar, :escalado, :todasPag, :reducirUltimo, :pdfinfo, :validacionRecursiva, :imponerStack, :imponerBooklet
+#########
+
+def self.paginasdelpdf(pdfinfo)
+  info = pdfinfo.chomp
+  busca = /pages\s*\:\s*(\d+)/moi
+  pags = busca.match(info)
+  paginas = pags[1]
+  return paginas.to_i 
+end
+
+#tamaño de página
+def self.pagesize(pdfinfo)
+  info = pdfinfo.chomp
+  busca = /Page size\s*\:\s*([\d\.]+)\s*x\s*([\d\.]+).*/
+  pags = busca.match(info)
+  retorno=Hash.new
+  splitted=pags[0].split(" ")
+  unidad=splitted[5]
+    #unidades pdfinfo 2 alchemist
+    if unidad=="pts" then
+      unidad="point"
+    #TODO elsif...
+    else#default
+      unidad="point"
+    end
+  retorno["unidad"]=unidad
+  #con unidad
+  retorno["ancho"]=pags[1].to_f.send(unidad)
+  retorno["alto"]=pags[2].to_f.send(unidad)
+  if splitted[6]!=nil then
+    retorno["nombre"]=splitted[6].delete("(").delete(")")
+  end
+  return retorno
+end
+
+def self.myPlacePDF(nX,nY,nPaginas,nPliegos)
+	myCounter=1	#numero de pagina
+	myPosition=0	#posicion en las coordenadas
+	@Transfer=0	#pliego
+	arreglo=[]
+	while (myCounter!=nPaginas+1) do
+		#USO
+		pos=Clases::Posicion.new(myCounter, myPosition, @Transfer)
+		arreglo.push(pos)
+		#NEXT
+		@Transfer+=1
+		if myCounter%2==0 then
+			myPosition-=2
+		end
+		myPosition+=1
+		if @Transfer==nPliegos then
+			@Transfer=0
+			myPosition+=2
+		end
+		myCounter+=1
+	end
+	return arreglo
+end
+
+#TODO podria eliminar w y h haciendo la comparacion en base a n y k?
+def self.getCoordinates(nX,nY,w,h)
+
+	coordenadas=[]
+	#posibilidad de usar márgenes
+	x0=0
+	y0=0
+	xN=x0+w*(nX-1)
+	
+	i=0
+	k=0#posicion en
+	n=0#fila
+	while(i<nX*nY) do
+		#USO
+		coordenadas.insert(2*i, Clases::Coordenada.new(x0+k*w,y0+n*h))
+		coordenadas.insert(2*i+1, Clases::Coordenada.new(xN-k*w,y0+n*h))
+		#NEXT
+		k+=1
+		if k==nX then
+			k=0
+			n+=1
+		end
+		i+=1
+	end
+	return coordenadas
+end
+
+def self.ordenar(mix)
+	for j in 0...mix.length
+		for k in 0...mix.length
+			if mix[j].t>mix[k].t and j<k then #si es de un pliego mayor
+				temp=mix[j]
+				mix[j]=mix[k]
+				mix[k]=temp
+			elsif mix[j].t==mix[k].t then #si es del mismo pliego
+				if mix[j].y>mix[k].y and j<k then#si es de una fila mayor
+					temp=mix[j]
+					mix[j]=mix[k]
+					mix[k]=temp
+				elsif mix[j].y==mix[k].y then #si es de la misma
+					if mix[j].x>mix[k].x and j<k then #si esta despues
+						temp=mix[j]
+						mix[j]=mix[k]
+						mix[k]=temp
+					end
+				end
+			end
+		end
+	end
+	return mix
+end
+
+def self.cutStack(nX,nY,nPaginas,nPliegos,w,h)
+	coordenadas=getCoordinates(nX,nY,w,h)
+	posiciones=myPlacePDF(nX,nY,nPaginas,nPliegos)
+	remix=[]
+	for i in 0...posiciones.size
+		mix=Clases::Mix.new(posiciones[i].mC, coordenadas[posiciones[i].mP].x, coordenadas[posiciones[i].mP].y, posiciones[i].t)
+		remix.insert(i, mix)
+	end
+	remix=ordenar(remix)
+	retorno=[]
+	#retorna solo el orden
+	for i in 0...remix.length
+		retorno << remix[i].n
+	end
+	return retorno
+end
+
+#conversion unidades alchemy 2 pdflatex
+def self.pdflatexUnit(x, unidad)
+	if unidad=="point" then
+		return [x,"pt"]
+	elsif unidad=="printer_point" then
+		return [x,"bp"]
+	elsif unidad=="m" then
+		x=x.to.cm
+		return [x,"cm"]
+	elsif unidad=="inch" then
+		return [x, "in"]
+	#TODO elsif...
+	else
+		return [x,unidad]
+	end
+end
+
+#crea un cuadernillo
+def self.unaDentroDeOtra(paginasReal, paginasEnCuadernillo, inicio, fin)
+	#llegan como float
+	inicio=inicio.to_i
+	fin=fin.to_i
+	
+	arreglo=[]
+	for i in 0...paginasEnCuadernillo/2
+		if (i+1)%2!=0 then
+			arreglo.push(fin-i)
+			arreglo.push(i+inicio)
+		else
+			arreglo.push(i+inicio)
+			arreglo.push(fin-i)
+		end
+	end
+	for i in 0...arreglo.length #TODO vale la pena meterlo en el loop anterior o de todos modos el de cut&Stack la hace y lo elimino?
+		if arreglo[i]>paginasReal then
+			arreglo[i]="{}"
+		end
+	end
+	return arreglo
+end
+
+#TODO validar que unidad exista en alchemist
+def self.input2alchemist(unidad)
+	if unidad=="pt" or unidad=="pts" then
+		return "point"
+	elsif unidad=="PT" or unidad=="bp" then
+		return "printer_point"
+	else
+		return unidad.downcase
+	end
+end
+
+def self.redondear(n)#TODO por BUG de alchemist (ruby 1.9 tiene round(3))
+  (n*1000).round/1000
+end
+
+#agrupa en cuadernillos
+def self.booklets(pagsEnCuadernillo, paginas, paginasReal, q)
+  arreglo=[]
+  van=0
+  for i in 0...(paginas.to_f/pagsEnCuadernillo).ceil
+    if i!=0 then
+      van+=pagsEnCuadernillo
+    end
+    inicio=van+1
+    fin=van+pagsEnCuadernillo
+    if fin>paginas and q!=nil then
+          pagsEnCuadernillo=q
+          fin=van+q
+    end
+    booklet=unaDentroDeOtra(paginasReal, pagsEnCuadernillo, inicio, fin)
+    arreglo.concat(booklet)
+  end
+  return arreglo
+end
+
+#multiplo de 4
+def self.mult4(paginasEnPliego)
+  paginas=paginasEnPliego
+  if paginasEnPliego%4 != 0 then
+    paginas=((paginasEnPliego/4)+1)*4
+    puts "se necesitaran #{paginas}p para imponer #{paginasEnPliego}p en #{paginas/4} cuadernillos plegables"#TODO mensaje, no aquí?
+  else
+    paginas=paginasEnPliego
+  end
+  return paginas
+end
+
+def self.cortarCola(nPaginas, pagsEnCuadernillo, cuadernillosPorCostura)
+  max = (nPaginas/pagsEnCuadernillo).ceil
+  if max*pagsEnCuadernillo>nPaginas then
+    anterior=pagsEnCuadernillo*(max-1)
+    q=nPaginas-anterior
+    if q%4!=0 then
+      q=((q/4)+1)*4
+    end
+    if anterior+q < max*pagsEnCuadernillo then
+      return Clases::PreguntaReducir.new(cuadernillosPorCostura, max*pagsEnCuadernillo-nPaginas, q/4, (anterior+q)-nPaginas, q)
+    end
+  end
+end
+
+def self.validacion(impostor, preguntas, mensajes)
+  if mensajes==nil then
+    mensajes=[]
+  end
+  if preguntas==nil then
+    preguntas=Hash.new
+  end
   #HORIZONTALMENTE
   if impostor.w!=0.point then
     if impostor.wP!=0.point then
@@ -284,31 +647,23 @@ def validacion(impostor)
     end
   end
   if impostor.cuadernillos then
-    #
     impostor.nPaginas=mult4(impostor.nPaginas)
     if impostor.cuadernillosPorCostura==0 then
       pagsEnCuadernillo=impostor.nPaginas#todos unos dentro de otros
     else
       pagsEnCuadernillo=impostor.cuadernillosPorCostura*4
     end
-    #
-    q=nil
-    max = (impostor.nPaginas/pagsEnCuadernillo).ceil
-    if max*pagsEnCuadernillo>impostor.nPaginas then
-      anterior=pagsEnCuadernillo*(max-1)
-      q=impostor.nPaginas-anterior
-      if q%4!=0 then
-        q=((q/4)+1)*4
+    if preguntas["reducir"]==nil or !preguntas["reducir"].ok then
+      preguntas["reducir"]=cortarCola(impostor.nPaginas, pagsEnCuadernillo, impostor.cuadernillosPorCostura)
+    else
+      if preguntas["reducir"].yn then
+        q=preguntas["reducir"].q
+      else
+        q=nil
       end
-      if anterior+q < max*pagsEnCuadernillo then
-        if !reducirUltimo(impostor.cuadernillosPorCostura, max*pagsEnCuadernillo-impostor.nPaginas, q/4, (anterior+q)-impostor.nPaginas) then
-          q=nil
-        end#TODO sugerencia
-      end
+      impostor.bookletz=booklets(pagsEnCuadernillo, impostor.nPaginas, impostor.nPaginasReal, q)
+      impostor.nPaginas=impostor.bookletz.length/2  
     end
-    #
-    impostor.bookletz=booklets(pagsEnCuadernillo, impostor.nPaginas, impostor.nPaginasReal, q)
-    impostor.nPaginas=impostor.bookletz.length/2
   end
   #nPaginas multiplo de nX*nY
   if impostor.nX*impostor.nY!=0 and impostor.nPaginas%(impostor.nX*impostor.nY)!=0 then
@@ -316,334 +671,7 @@ def validacion(impostor)
     mensajes.push(Clases::Mensaje.new(1, "El pdf tiene #{impostor.nPaginasReal} paginas, que impuestas en #{impostor.nX}x#{impostor.nY} son #{impostor.nPaginas} paginas"))
   end
   #TODO ¿ROTAR? si se gasta menos espacio por pliego o en total da menos pliegos...
-  
-  return mensajes
-end
-
-def imponerStack(impostor, directorio, temp)
-  
-  wPC=pdflatexUnit(impostor.wP, impostor.wP_["unidad"])
-  impostor.wP=wPC[0]
-  impostor.wP_["unidad"]=wPC[1]
-  hPC=pdflatexUnit(impostor.hP, impostor.hP_["unidad"])
-  impostor.hP=hPC[0]
-  impostor.hP_["unidad"]=hPC[1]
-  wC=pdflatexUnit(impostor.w, impostor.w_["unidad"])
-  impostor.w=wC[0]
-  impostor.w_["unidad"]=wC[1]
-  hC=pdflatexUnit(impostor.h, impostor.h_["unidad"])
-  impostor.h=hC[0]
-  impostor.h_["unidad"]=hC[1]
-  
-  #las paginas que no existen se dejan en blanco
-  cS=cutStack(impostor.nX,impostor.nY,impostor.nPaginas,impostor.nPliegos,impostor.w.to_f,impostor.h.to_f)
-  for i in 0...cS.size
-    if cS[i].to_i > impostor.nPaginasReal then
-      cS[i]="{}"
-    end
-  end
-  cS=cS.join(",")
-
-  cutted=directorio+"/"+"cutStack.tex"
-  File.open(cutted, 'w') do |cutStack|
-    cutStack.puts "\\documentclass{report}"
-    cutStack.puts "\\usepackage{pdfpages}"
-    cutStack.puts "\\usepackage{geometry}"
-    cutStack.puts "\\geometry{"
-    cutStack.puts "papersize={#{impostor.wP}#{impostor.wP_["unidad"]},#{impostor.hP}#{impostor.hP_["unidad"]}},"
-    cutStack.puts "left=0mm,"#posibilidad de márgenes
-    cutStack.puts "right=0mm,"
-    cutStack.puts "top=0mm,"
-    cutStack.puts "bottom=0mm,"
-    cutStack.puts "ignoreall,"
-    cutStack.puts "headsep=0mm,"
-    cutStack.puts "headheight=0mm,"
-    cutStack.puts "foot=0mm,"
-    cutStack.puts "marginpar=0mm"
-    cutStack.puts "}"
-    cutStack.puts "\\begin{document}"
-    cutStack.puts "\\includepdf[pages={#{cS}},nup=#{impostor.nX}x#{impostor.nY},noautoscale, frame, width=#{impostor.w}#{impostor.w_["unidad"]}, height=#{impostor.h}#{impostor.h_["unidad"]}]{#{temp}}"
-    cutStack.puts "\\end{document}"
-  end
- 
-  pdflatex=`#{$requerimientos["pdflatex"]} #{cutted}`
-  
-end
-
-def imponerBooklet(impostor, directorio, archivo)
-  #unidades latex
-  wC=pdflatexUnit(impostor.w_["numero"], impostor.w_["unidad"])
-  impostor.w=wC[0]
-  impostor.w_["unidad"]=wC[1]
-  hC=pdflatexUnit(impostor.h_["numero"], impostor.h_["unidad"])
-  impostor.h=hC[0]
-  impostor.h_["unidad"]=hC[1]
-
-  wDummy=impostor.w_["numero"].to_f#bug alchemist
-  pierpa=directorio+"/"+"booKlet.tex"
-  File.open(pierpa, 'w') do |booklet|
-    booklet.puts "\\documentclass{report}"
-    booklet.puts "\\usepackage{pdfpages}"
-    booklet.puts "\\usepackage{geometry}"
-    booklet.puts "\\geometry{"
-    booklet.puts "papersize={#{impostor.w_["numero"]}#{impostor.h_["unidad"]},#{impostor.h_["numero"]}#{impostor.h_["unidad"]}},"
-    booklet.puts "left=0mm,"#posibilidad de márgenes
-    booklet.puts "right=0mm,"
-    booklet.puts "top=0mm,"
-    booklet.puts "bottom=0mm,"
-    booklet.puts "ignoreall,"
-    booklet.puts "headsep=0mm,"
-    booklet.puts "headheight=0mm,"
-    booklet.puts "foot=0mm,"
-    booklet.puts "marginpar=0mm"
-    booklet.puts "}"
-    booklet.puts "\\begin{document}"
-    booklet.puts "\\includepdf[pages={#{impostor.bookletz.join(",")}},nup=2x1,noautoscale,width=#{wDummy/2}#{impostor.w_["unidad"]}, height=#{impostor.h_["numero"]}#{impostor.h_["unidad"]}]{#{archivo}}"
-    booklet.puts "\\end{document}"
-  end
-  #LaTeX
-  pdflatex=`#{$requerimientos["pdflatex"]} #{pierpa}`
-  #lo devuelvo
-  FileUtils.mv(directorio+"/"+"booKlet.pdf", archivo)
-end
-
-#########
-module_function :input, :enBooklets, :exigePar, :escalado, :todasPag, :pdfinfo, :validacion, :imponerStack, :imponerBooklet
-#########
-
-def self.paginasdelpdf(pdfinfo)
-  info = pdfinfo.chomp
-  busca = /pages\s*\:\s*(\d+)/moi
-  pags = busca.match(info)
-  paginas = pags[1]
-  return paginas.to_i 
-end
-
-#tamaño de página
-def self.pagesize(pdfinfo)
-  info = pdfinfo.chomp
-  busca = /Page size\s*\:\s*([\d\.]+)\s*x\s*([\d\.]+).*/
-  pags = busca.match(info)
-  retorno=Hash.new
-  splitted=pags[0].split(" ")
-  unidad=splitted[5]
-    #unidades pdfinfo 2 alchemist
-    if unidad=="pts" then
-      unidad="point"
-    #TODO elsif...
-    else#default
-      unidad="point"
-    end
-  retorno["unidad"]=unidad
-  #con unidad
-  retorno["ancho"]=pags[1].to_f.send(unidad)
-  retorno["alto"]=pags[2].to_f.send(unidad)
-  if splitted[6]!=nil then
-    retorno["nombre"]=splitted[6].delete("(").delete(")")
-  end
-  return retorno
-end
-
-def self.myPlacePDF(nX,nY,nPaginas,nPliegos)
-	myCounter=1	#numero de pagina
-	myPosition=0	#posicion en las coordenadas
-	@Transfer=0	#pliego
-	arreglo=[]
-	while (myCounter!=nPaginas+1) do
-		#USO
-		pos=Clases::Posicion.new(myCounter, myPosition, @Transfer)
-		arreglo.push(pos)
-		#NEXT
-		@Transfer+=1
-		if myCounter%2==0 then
-			myPosition-=2
-		end
-		myPosition+=1
-		if @Transfer==nPliegos then
-			@Transfer=0
-			myPosition+=2
-		end
-		myCounter+=1
-	end
-	return arreglo
-end
-
-#TODO podria eliminar w y h haciendo la comparacion en base a n y k?
-def self.getCoordinates(nX,nY,w,h)
-
-	coordenadas=[]
-	#posibilidad de usar márgenes
-	x0=0
-	y0=0
-	xN=x0+w*(nX-1)
-	
-	i=0
-	k=0#posicion en
-	n=0#fila
-	while(i<nX*nY) do
-		#USO
-		coordenadas.insert(2*i, Clases::Coordenada.new(x0+k*w,y0+n*h))
-		coordenadas.insert(2*i+1, Clases::Coordenada.new(xN-k*w,y0+n*h))
-		#NEXT
-		k+=1
-		if k==nX then
-			k=0
-			n+=1
-		end
-		i+=1
-	end
-	return coordenadas
-end
-
-def self.ordenar(mix)
-	for j in 0...mix.length
-		for k in 0...mix.length
-			if mix[j].t>mix[k].t and j<k then #si es de un pliego mayor
-				temp=mix[j]
-				mix[j]=mix[k]
-				mix[k]=temp
-			elsif mix[j].t==mix[k].t then #si es del mismo pliego
-				if mix[j].y>mix[k].y and j<k then#si es de una fila mayor
-					temp=mix[j]
-					mix[j]=mix[k]
-					mix[k]=temp
-				elsif mix[j].y==mix[k].y then #si es de la misma
-					if mix[j].x>mix[k].x and j<k then #si esta despues
-						temp=mix[j]
-						mix[j]=mix[k]
-						mix[k]=temp
-					end
-				end
-			end
-		end
-	end
-	return mix
-end
-
-def self.cutStack(nX,nY,nPaginas,nPliegos,w,h)
-	coordenadas=getCoordinates(nX,nY,w,h)
-	posiciones=myPlacePDF(nX,nY,nPaginas,nPliegos)
-	remix=[]
-	for i in 0...posiciones.size
-		mix=Clases::Mix.new(posiciones[i].mC, coordenadas[posiciones[i].mP].x, coordenadas[posiciones[i].mP].y, posiciones[i].t)
-		remix.insert(i, mix)
-	end
-	remix=ordenar(remix)
-	retorno=[]
-	#retorna solo el orden
-	for i in 0...remix.length
-		retorno << remix[i].n
-	end
-	return retorno
-end
-
-#conversion unidades alchemy 2 pdflatex
-def self.pdflatexUnit(x, unidad)
-	if unidad=="point" then
-		return [x,"pt"]
-	elsif unidad=="printer_point" then
-		return [x,"bp"]
-	elsif unidad=="m" then
-		x=x.to.cm
-		return [x,"cm"]
-	elsif unidad=="inch" then
-		return [x, "in"]
-	#TODO elsif...
-	else
-		return [x,unidad]
-	end
-end
-
-#crea un cuadernillo
-def self.unaDentroDeOtra(paginasReal, paginasEnCuadernillo, inicio, fin)
-	#llegan como float
-	inicio=inicio.to_i
-	fin=fin.to_i
-	
-	arreglo=[]
-	for i in 0...paginasEnCuadernillo/2
-		if (i+1)%2!=0 then
-			arreglo.push(fin-i)
-			arreglo.push(i+inicio)
-		else
-			arreglo.push(i+inicio)
-			arreglo.push(fin-i)
-		end
-	end
-	for i in 0...arreglo.length #TODO vale la pena meterlo en el loop anterior o de todos modos el de cut&Stack la hace y lo elimino?
-		if arreglo[i]>paginasReal then
-			arreglo[i]="{}"
-		end
-	end
-	return arreglo
-end
-
-#TODO validar que unidad exista en alchemist
-def self.input2alchemist(unidad)
-	if unidad=="pt" or unidad=="pts" then
-		return "point"
-	elsif unidad=="PT" or unidad=="bp" then
-		return "printer_point"
-	else
-		return unidad.downcase
-	end
-end
-
-def self.redondear(n)#TODO por BUG de alchemist (ruby 1.9 tiene round(3))
-  (n*1000).round/1000
-end
-
-#agrupa en cuadernillos
-def self.booklets(pagsEnCuadernillo, paginas, paginasReal, q)
-  
-  arreglo=[]
-  van=0
-  for i in 0...(paginas.to_f/pagsEnCuadernillo).ceil
-    if i!=0 then
-      van+=pagsEnCuadernillo
-    end
-
-    inicio=van+1
-    fin=van+pagsEnCuadernillo
-    
-    #
-    if fin>paginas and q!=nil then
-          pagsEnCuadernillo=q
-          fin=van+q
-    end
-    #
-    
-    booklet=unaDentroDeOtra(paginasReal, pagsEnCuadernillo, inicio, fin)
-    arreglo.concat(booklet)
-  end
-  return arreglo
-end
-
-#multiplo de 4
-def self.mult4(paginasEnPliego)
-  paginas=paginasEnPliego
-  if paginasEnPliego%4 != 0 then
-    paginas=((paginasEnPliego/4)+1)*4
-    puts "se necesitaran #{paginas}p para imponer #{paginasEnPliego}p en #{paginas/4} cuadernillos plegables"#TODO mensaje, no aquí?
-  else
-    paginas=paginasEnPliego
-  end
-  return paginas
-end
-
-#########TODO los que no debieran ser self pues reciben input
-
-def self.reducirUltimo(cuadernillosPorCostura, x, p, x2)
-  puts "al ultimo grupo de #{cuadernillosPorCostura} cuadernillos le sobraran #{x}p"#TODO MENSAJE (1 sola vez)
-  puts "podemos reducirlo a #{p} cuadernillos, asi sobrarian #{x2}. ¿0K? (y/n)"
-  ok=STDIN.gets.to_s
-  if ok[0]==121 then#Y
-    return true
-  elsif ok[0]==110 then#N
-    return false
-  else
-    reducirUltimo(cuadernillosPorCostura, x, p, x2)
-  end
+  return [mensajes, preguntas]
 end
 
 end

@@ -30,15 +30,16 @@ $requerimientos.each do |k,v|
 end
 
 #archivos
+
 work="/tmp/impostor"
 #probamos que exista el directorio de trabajo
 if File.exists?(work) then
 	#y que sea escribible
 	if File.writable?(work) and File.writable_real?(work) then
 		#creo mi directorio
-		directorio=work+"/"+UUIDTools::UUID.random_create
-		Dir.mkdir(directorio)
-		Dir.chdir(directorio)
+		$dir=work+"/"+UUIDTools::UUID.random_create
+		Dir.mkdir($dir)
+		$codeDir = Dir.pwd
 	else
 	puts "el directorio de trabajo "+work+" no se puede escribir"
 	end	
@@ -52,7 +53,7 @@ if entrada != nil then
 		if File.owned?(entrada) then
 			busca = /.*(.pdf)/
 			if busca.match(File.basename(entrada)) then
-				temp=directorio+"/"+File.basename(entrada)#me lo llevo
+				temp=$dir+"/"+File.basename(entrada)#me lo llevo
 				FileUtils.cp(entrada, temp)
 			else
 			puts "el archivo "+entrada+" no es pdf"#TODO esto es lo único que se testeará en Rails
@@ -136,10 +137,12 @@ if impostor.cuadernillos then
 end
 
 #2° VALIDACION
+retorno=Metodos.validacionRecursiva(impostor, nil, nil)
+
 puts "::::::::::::mensajes:::::::::::::"#blink blink
-mensajes=Metodos.validacion(impostor)
 #TODO si hay error mostrar solo errores
 valido=true
+mensajes=retorno.shift
 mensajes.each do |mensaje|
   puts mensaje.to_s
   if mensaje.level==3 then
@@ -155,7 +158,7 @@ else
   if impostor.cuadernillos then
     puts "::::::::::::booklets:::::::::::::"#blink blink
     tIni=Time.now
-  	  Metodos.imponerBooklet(impostor, directorio, temp)#pdflatex TODO 1 sola vez?
+  	  Metodos.imponerBooklet(impostor, temp)#TODO 1 sola vez pdflatex?
   	tFin=Time.now
     t=tFin-tIni
     puts "booklets: "+t.to_s+" segundos"
@@ -163,7 +166,7 @@ else
   puts "::::::::::::cut&Stack::::::::::::"#blink blink
   puts impostor.to_s
   tIni=Time.now
-    Metodos.imponerStack(impostor, directorio, temp)
+    Metodos.imponerStack(impostor, temp)
 	tFin=Time.now
   t=tFin-tIni
   puts "cut&Stack: "+t.to_s+" segundos"
@@ -171,14 +174,14 @@ else
 	if salida != nil then
 		entrada=salida
 	end
-	FileUtils.mv(directorio+"/"+"cutStack.pdf", entrada)
+	FileUtils.mv($dir+"/"+"cutStack.pdf", entrada)
 	puts "::::::::::::Game Over::::::::::::"#blink blink
 end
 
 ensure
   #limpio todo, aunque se caiga
-  if directorio!=nil then
-    `rm -r #{directorio}`
+  if $dir!=nil then
+    `rm -r #{$dir}`
   end
 end
 #GAME OVER
