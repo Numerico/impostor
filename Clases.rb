@@ -211,5 +211,30 @@ class PreguntaReducir < Pregunta
   end
 end
 
+class PreguntaEscalado < Pregunta
+  def initialize(tipo)
+    @mensaje="en duro"
+    @tipo=tipo
+  end
+  def metodo()
+    @yn=Metodos.escalado(@tipo)
+    @ok=true
+  end
+end
+
+class PreguntaTodasPag < Pregunta
+  def initialize(nPliegos, nX, nY, caben, tiene)
+    @nPliegos=nPliegos
+    @nX=nX
+    @nY=nY
+    @caben=caben
+    @tiene=tiene
+  end
+  def metodo()
+    @yn=Metodos.todasPag(@nPliegos, @nX, @nY, @caben, @tiene)
+    @ok=true
+  end
+end
+
 end#fin módulo
 

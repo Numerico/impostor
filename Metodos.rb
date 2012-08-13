@@ -74,7 +74,7 @@ def todasPag(nPliegos, nX, nY, caben, tiene)
   elsif escalar[0]==110 then#N
     return false
   else
-    escalado(tipo)#TODO???
+    todasPag(nPliegos, nX, nY, caben, tiene)
   end
 end
 
@@ -96,7 +96,7 @@ def validacionRecursiva(impostor, preguntas, mensajes)
   preguntas=retorno.pop
   todoOk=true
   preguntas.each do |k,v|
-    if !v.ok then
+    if v!=nil and !v.ok then
       todoOk=false
       v.metodo()
     end
@@ -476,19 +476,23 @@ def self.validacion(impostor, preguntas, mensajes)
     end
   elsif impostor.wP!=0.point then
     if impostor.nX!=0 then
-      if Metodos.escalado("horizontalmente") then
-        impostor.w=(impostor.wP.to_f/impostor.nX).send(impostor.wP_["unidad"])
-        impostor.w_["numero"]=impostor.w
-        impostor.w_["unidad"]=impostor.wP_["unidad"]
-        mensajes.push(Clases::MensajeDato.new(1, "horizontal", 3))#info
+      if preguntas["escaladoH"]==nil or !preguntas["escaladoH"].ok then
+        preguntas["escaladoH"]=Clases::PreguntaEscalado.new("horizontalmente")
       else
-        impostor.w=impostor.wReal
-        if impostor.cuadernillos then
-          impostor.w=impostor.w*2
+        if preguntas["escaladoH"].yn then
+          impostor.w=(impostor.wP.to_f/impostor.nX).send(impostor.wP_["unidad"])
           impostor.w_["numero"]=impostor.w
+          impostor.w_["unidad"]=impostor.wP_["unidad"]
+          mensajes.push(Clases::MensajeDato.new(1, "horizontal", 3))#info
+        else
+          impostor.w=impostor.wReal
+          if impostor.cuadernillos then
+            impostor.w=impostor.w*2
+            impostor.w_["numero"]=impostor.w
+          end
+          impostor.w_["unidad"]=impostor.size["unidad"]
+          mensajes.push(Clases::MensajeDato.new(1, "horizontal", 4))#info
         end
-        impostor.w_["unidad"]=impostor.size["unidad"]
-        mensajes.push(Clases::MensajeDato.new(1, "horizontal", 4))#info
       end
     else  
       impostor.w=impostor.wReal
@@ -545,16 +549,20 @@ def self.validacion(impostor, preguntas, mensajes)
     end
   elsif impostor.hP!=0.point then
     if impostor.nY!=0 then
-      if Metodos.escalado("verticalmente") then
-        impostor.h=(impostor.hP.to_f/impostor.nY).send(impostor.hP_["unidad"])
-        impostor.h_["numero"]=impostor.h
-        impostor.h_["unidad"]=impostor.hP_["unidad"]
-        mensajes.push(Clases::MensajeDato.new(1, "vertical", 3))#info
+      if preguntas["escaladoV"]==nil or !preguntas["escaladoV"].ok then
+        preguntas["escaladoV"]=Clases::PreguntaEscalado.new("verticalmente")
       else
-        impostor.h=impostor.hReal
-        impostor.h_["numero"]=impostor.h
-        impostor.h_["unidad"]=impostor.size["unidad"]
-        mensajes.push(Clases::MensajeDato.new(1, "vertical", 4))#info
+        if preguntas["escaladoV"].yn then
+          impostor.h=(impostor.hP.to_f/impostor.nY).send(impostor.hP_["unidad"])
+          impostor.h_["numero"]=impostor.h
+          impostor.h_["unidad"]=impostor.hP_["unidad"]
+          mensajes.push(Clases::MensajeDato.new(1, "vertical", 3))#info
+        else
+          impostor.h=impostor.hReal
+          impostor.h_["numero"]=impostor.h
+          impostor.h_["unidad"]=impostor.size["unidad"]
+          mensajes.push(Clases::MensajeDato.new(1, "vertical", 4))#info
+        end
       end
     else
       #deducimos del pdf no mas
@@ -605,16 +613,20 @@ def self.validacion(impostor, preguntas, mensajes)
   if impostor.nPaginas==0 then
     if impostor.nPliegos!=0 then
       nCaben=impostor.nPliegos*nXm*impostor.nY
-      if !Metodos.todasPag(impostor.nPliegos, impostor.nXm, impostor.nY, nCaben, impostor.nPaginasReal) then
-        impostor.nPaginas=nCaben
-        if nCaben <= impostor.nPaginas then
-          mensajes.push(Clases::MensajeDato.new(1, "paginas", 1))#info
-        else
-          mensajes.push(Clases::MensajeDato.new(3, "paginas", 1))#error 
-        end
+      if preguntas["todasPag"]==nil or !preguntas["todasPag"].ok then
+        preguntas["todasPag"]=Clases::PreguntaTodasPag.new(impostor.nPliegos, nXm, impostor.nY, nCaben, impostor.nPaginasReal)
       else
-        impostor.nPaginas=impostor.nPaginasReal
-        mensajes.push(Clases::MensajeDato.new(1, "paginas", 3))#info
+        if !preguntas["todasPag"].yn then
+          impostor.nPaginas=nCaben
+          if nCaben <= impostor.nPaginas then
+            mensajes.push(Clases::MensajeDato.new(1, "paginas", 1))#info
+          else
+            mensajes.push(Clases::MensajeDato.new(3, "paginas", 1))#error 
+          end
+        else
+          impostor.nPaginas=impostor.nPaginasReal
+          mensajes.push(Clases::MensajeDato.new(1, "paginas", 3))#info
+        end
       end
     else
       impostor.nPaginas=impostor.nPaginasReal
