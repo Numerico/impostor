@@ -29,7 +29,8 @@ class Imposicion
     if @cuadernillos then
       nXm*=2
     end
-    str="nX:"+nXm.to_s+"\n"
+    str=":::::::::::::::vars::::::::::::::\n"
+    str+="nX:"+nXm.to_s+"\n"
     str+="nY:"+@nY.to_s+"\n"
     str+="nPaginas:"+@nPaginas.to_s+"\n"
     str+="nPliegos:"+@nPliegos.to_s+"\n"
@@ -207,12 +208,13 @@ end
 
 class MensajeTiempo < Mensaje
   def initialize(tipo,tiempo)
+    @tiempo=tiempo
     @level=1
     if tipo==1 then#booklets
       @mensaje="::::::::::::booklets:::::::::::::\n"#blink blink
       @mensaje+="booklets: "
     elsif tipo==2 then
-      @mensaje="::::::::::::cut&Stack::::::::::::"#blink blink
+      @mensaje="::::::::::::cut&Stack::::::::::::\n"#blink blink
       @mensaje+="cut&Stack: "
     end  
     @mensaje+=@tiempo.to_s+" segundos"

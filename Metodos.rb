@@ -615,16 +615,18 @@ def self.validacion(impostor, preguntas)
     mensajes.push(Clases::MensajeDato.new(3, "vertical", 4))#error
   end
   #MEDIDAS
+  wPDummy=impostor.wP_["numero"].send(impostor.wP_["unidad"])#bug alchemist
+  hPDummy=impostor.hP_["numero"].send(impostor.hP_["unidad"])
   if redondear(impostor.nX*impostor.w.to_f) > redondear(impostor.wP.to(impostor.w_["unidad"]).to_f) then
     mensajes.push(Clases::MensajeMedida.new(3, "horizontal", [impostor.nX, impostor.w_, impostor.wP_]))#error
-  elsif impostor.nX>0 and (impostor.nX*impostor.w.to_f).send(impostor.w_["unidad"]) < impostor.wP then
+  elsif impostor.nX>0 and wPDummy -(impostor.nX*impostor.w.to_f).send(impostor.w_["unidad"]) > 0.send(impostor.wP_["unidad"]) then
     sobra=impostor.wP-(impostor.nX*impostor.w.to_f).send(impostor.w_["unidad"])
     impostor.wP=impostor.wP_["numero"].send(impostor.wP_["unidad"])
     mensajes.push(Clases::MensajeMedida.new(2, "horizontal", [sobra, impostor.wP_["unidad"]]))#warn
   end
   if redondear(impostor.nY*impostor.h.to_f) > redondear(impostor.hP.to(impostor.h_["unidad"]).to_f) then
     mensajes.push(Clases::MensajeMedida.new(3, "vertical", [impostor.nY, impostor.h_, impostor.hP_]))#error
-  elsif impostor.nY>0 and (impostor.nY*impostor.h.to_f).send(impostor.h_["unidad"]) < impostor.hP then
+  elsif impostor.nY>0 and hPDummy - (impostor.nY*impostor.h.to_f).send(impostor.h_["unidad"]) > 0.send(impostor.h_["unidad"]) then
     sobra=impostor.hP-(impostor.nY*impostor.h.to_f).send(impostor.h_["unidad"])
     impostor.hP=impostor.hP_["numero"].send(impostor.hP_["unidad"])
     mensajes.push(Clases::MensajeMedida.new(2, "vertical", [sobra, impostor.hP_["unidad"]]))#warn
