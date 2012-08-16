@@ -232,6 +232,7 @@ class Pregunta
   end
 end
 
+#TODO sugerencia si + o -
 class PreguntaExigePar < Pregunta
   attr_accessor :nX
   def initialize(nX)
@@ -245,7 +246,8 @@ class PreguntaExigePar < Pregunta
   end
 end
 
-class PreguntaCXC < Pregunta #TODO COSTURAS en total
+#TODO COSTURAS en total
+class PreguntaCXC < Pregunta 
   attr_reader :cXC
   def initialize()
     @mensaje="cXC - cuadernillos por costura (0->todos unos dentro de otros, 1->todos uno al lado de otro o n-> de a n cuadernillos uno dentro de otro)"

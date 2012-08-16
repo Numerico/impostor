@@ -1,94 +1,14 @@
 module Metodos
+  
+require 'rubygems'
+require 'uuidtools'
+require 'fileutils'
+require 'alchemist'
 
-#INPUT
-def input(nombre)
-  retorno=Hash.new
-  STDOUT.puts(nombre)
-  input=STDIN.gets
-  if input[0]==10 then #no input
-    retorno["numero"]=0.point
-    retorno["unidad"]="point"#default
-    return retorno    
-  else
-    regex = /(\d+\.*\d*)\s*(\w*)/
-    split = regex.match(input)
-    if split!=nil then
-      retorno["numero"]=split[1].to_f
-      if split[2]=="" then
-        retorno["unidad"]="point"#default
-      else
-        retorno["unidad"]=input2alchemist(split[2])
-      end
-      return retorno
-    else
-      puts "la unidad de #{input} no es correcta"
-      input(nombre)
-    end
-  end
-end
-
-def enBooklets()
-  STDOUT.puts("¿imponer en cuadernillos? (y/n)")
-    bookies=STDIN.gets.to_s
-  if bookies[0]==121 then#Y
-    return true
-  elsif bookies[0]==110 then#N
-    return false
-  else
-    enBooklets()
-  end
-end
-
-def exigePar(nX) #TODO sugerencia si + o -
-  nX=input("nX:")
-  nX=nX["numero"]
-  if nX%2!=0 then
-    exigePar(nX)
-  end
-  return nX     
-end
-
-def escalado(tipo)
-  if tipo=="horizontalmente" then
-    puts "no especifico ancho de pagina pero si ancho de pliego y numero de paginas por pliego "+tipo 
-  else
-    puts "no especifico alto de pagina pero si alto de pliego y numero de paginas por pliego "+tipo
-  end
-  STDOUT.puts("¿escalar "+tipo+"? (y/n)")
-    escalar=STDIN.gets.to_s
-  if escalar[0]==121 then#Y
-    return true
-  elsif escalar[0]==110 then#N
-    return false
-  else
-    escalado(tipo)
-  end
-end
-
-def todasPag(nPliegos, nX, nY, caben, tiene)
-  STDOUT.puts("el pdf tiene #{tiene.to_i} paginas, pero en #{nPliegos.to_i} de #{nX}x#{nY} caben #{caben.to_i} paginas ¿usar las del pdf? (y/n)")
-    escalar=STDIN.gets.to_s
-  if escalar[0]==121 then#Y
-    return true
-  elsif escalar[0]==110 then#N
-    return false
-  else
-    todasPag(nPliegos, nX, nY, caben, tiene)
-  end
-end
-
-def reducirUltimo(cuadernillosPorCostura, paginasSobran, nCuad, sobranMenos)
-  puts "al ultimo grupo de #{cuadernillosPorCostura} cuadernillos le sobraran #{paginasSobran}p"#TODO MENSAJE (1 sola vez)
-  puts "podemos reducirlo a #{nCuad} cuadernillos, asi sobrarian #{sobranMenos}. ¿0K? (y/n)"
-  ok=STDIN.gets.to_s
-  if ok[0]==121 then#Y
-    return true
-  elsif ok[0]==110 then#N
-    return false
-  else
-    reducirUltimo(cuadernillosPorCostura, paginasSobran, nCuad, sobranMenos)
-  end
-end
+#paquetes
+$requerimientos=Hash.new
+$requerimientos["pdflatex"]="pdflatex"
+$requerimientos["pdfinfo"]="pdfinfo"
 
 #WORK
 def funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas)
@@ -110,8 +30,65 @@ def funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas)
   return retorno
 end
 
+def checks(requerimientos, work, entrada, salida)
+  #paquetes
+  $requerimientos.each do |k,v|
+    `which #{v}`
+    if !$?.success? then
+      return Mensaje.new(3,"#{v} no es ejecutable")
+    end  
+  end
+  #archivos
+  #probamos que exista el directorio de trabajo
+  if File.exists?(work) then
+    #y que sea escribible
+    if File.writable?(work) and File.writable_real?(work) then
+      #creo mi directorio
+      $dir=work+"/"+UUIDTools::UUID.random_create
+      Dir.mkdir($dir)
+      $codeDir = Dir.pwd
+    else
+    return Mensaje.new(3,"el directorio de trabajo "+work+" no se puede escribir")
+    end 
+  else
+  return Mensaje.new(3,"el directorio de trabajo "+work+ " no existe")
+  end
+  #la entrada
+  if entrada != nil then
+    if File.file?(entrada) then
+      if File.owned?(entrada) then
+        busca = /.*(.pdf)/
+        if busca.match(File.basename(entrada)) then
+          $temp=$dir+"/"+File.basename(entrada)#me lo llevo
+          FileUtils.cp(entrada, $temp)
+        else
+        return Mensaje.new(3,"el archivo "+entrada+" no es pdf")
+        end
+      else
+      return Mensaje.new(3,"el archivo "+entrada+" no es mío")
+      end
+    else
+    return Mensaje.new(3,entrada+" no es un archivo")
+    end
+  else
+    return Mensaje.new(3,"no ha especificado archivo a imponer")
+  end
+  #y la salida, de haberla
+  if $salida!=nil then
+  #if File.exists?(salida) then #TODO crearla si es escribible
+    salidaDir=File.dirname($salida)
+    if !File.writable?(salidaDir) or !File.writable_real?(salidaDir) then
+      return Mensaje.new(3,"el directorio de salida "+$salida+" no se puede escribir")
+    end 
+  #else
+  # puts salida+ " no existe"
+  # exit
+  #end
+  end
+end
+
 #########
-module_function :input, :enBooklets, :exigePar, :escalado, :todasPag, :reducirUltimo, :funcionar
+module_function :funcionar, :checks
 #########
 
 def self.pdfinfo(impostor, temp)
@@ -406,7 +383,7 @@ def self.input2alchemist(unidad)
 	end
 end
 
-def self.redondear(n)#TODO por BUG de alchemist (ruby 1.9 tiene round(3))
+def self.redondear(n)#por BUG de alchemist (ruby 1.9 tiene round(3))
   (n*1000).round/1000
 end
 
@@ -432,14 +409,15 @@ end
 
 #multiplo de 4
 def self.mult4(paginasEnPliego)
+  msg=nil
   paginas=paginasEnPliego
   if paginasEnPliego%4 != 0 then
     paginas=((paginasEnPliego/4)+1)*4
-    puts "se necesitaran #{paginas}p para imponer #{paginasEnPliego}p en #{paginas/4} cuadernillos plegables"#TODO mensaje, no aquí?
+    msg=Clases::Mensaje.new(1,"se necesitaran #{paginas}p para imponer #{paginasEnPliego}p en #{paginas/4} cuadernillos plegables")
   else
     paginas=paginasEnPliego
   end
-  return paginas
+  return [paginas,msg]
 end
 
 def self.cortarCola(nPaginas, pagsEnCuadernillo, cuadernillosPorCostura)
@@ -691,7 +669,12 @@ def self.validacion(impostor, preguntas)
   end
   if impostor.cuadernillos then
     q=nil
-    impostor.nPaginas=mult4(impostor.nPaginas)
+    m4=mult4(impostor.nPaginas)
+    impostor.nPaginas=m4.shift
+    msg=m4.shift
+    if msg!=nil then
+      mensajes.push(msg)
+    end
     if impostor.cuadernillosPorCostura==0 then
       pagsEnCuadernillo=impostor.nPaginas#todos unos dentro de otros
     else
