@@ -53,7 +53,7 @@ class Posicion
 		"mC=#{@mC} mP=#{@mP} t=#{@t}"
 	end
 end
-
+#
 class Coordenada
 	def initialize(x,y)
 		@x=x
@@ -64,7 +64,7 @@ class Coordenada
 		"x=#{@x} y=#{@y}"
 	end
 end
-
+#
 class Mix
 	def initialize(n,x,y,t)
 		@n=n
@@ -88,15 +88,18 @@ class Mensaje
 		if @level==1 then
 			@retorno="info: "
 		elsif @level==2 then
-			@retorno="warn: "
+			@retorno="Warn: "
 		elsif @level==3 then
 			@retorno="ERROR: "
 		end
 		@retorno+=@mensaje
 		return @retorno
+	end
+	def ==(msg)
+	  return (!(msg.instance_of? MensajeDato) and !(msg.instance_of? MensajeMedida) and !(msg.instance_of? MensajeTiempo) and !(msg.instance_of? MensajeLadoLado) and @level===msg.level)# and @mensaje==msg.mensaje)
 	end 
 end
-
+#
 class MensajeDato < Mensaje
 	attr_reader :tipo, :numero
 	def initialize(level, tipo, numero)
@@ -105,7 +108,10 @@ class MensajeDato < Mensaje
 		@mensaje=deducirMensaje(tipo,level,numero)
 		super(level, @mensaje)
 	end
-
+	def ==(msg)
+	  #super(?)
+	  return (msg.instance_of? MensajeDato and @level==msg.level and @tipo==msg.tipo and @numero==msg.numero)# and @mensaje==msg.mensaje)
+	end
 	def deducirMensaje(tipo, level, numero)
 		if tipo=="horizontal" then
 			if level==1 then#info
@@ -183,11 +189,14 @@ class MensajeDato < Mensaje
 	
 	end
 end
-
+#
 class MensajeMedida < Mensaje
 	def initialize(level, tipo, args)
 		@mensaje=deducirMensaje(level, tipo, args)
 		super(level, @mensaje)
+	end
+	def ==(msg)
+	  return (msg.instance_of? MensajeMedida and @level==msg.level and @tipo==msg.tipo) #!args ?
 	end
 	def deducirMensaje(level, tipo, args)
 		if tipo=="horizontal" then
@@ -205,8 +214,9 @@ class MensajeMedida < Mensaje
 		end
 	end
 end
-
+#
 class MensajeTiempo < Mensaje
+  attr_reader :tipo
   def initialize(tipo,tiempo)
     @tiempo=tiempo
     @level=1
@@ -221,6 +231,21 @@ class MensajeTiempo < Mensaje
     @tiempo=tiempo
     super(level,mensaje)
   end
+  def ==(msg)
+    return (msg.instance_of? MensajeTiempo and @tipo==msg.tipo)
+  end
+end
+#
+class MensajeLadoLado < Mensaje
+  attr_reader :nP
+  def initialize(nP)
+    @nP=nP
+    @mensaje="como son cuadernillos lado y lado los pliegos no pueden ser impares, se toman #{@nP}+1"
+    super(1,@mensaje)
+  end
+  def ==(msg)
+    return (msg.instance_of? MensajeLadoLado and @nP==msg.nP)
+  end
 end
 
 class Pregunta
@@ -231,7 +256,7 @@ class Pregunta
   def metodo()
   end
 end
-
+#
 #TODO sugerencia si + o -
 class PreguntaExigePar < Pregunta
   attr_accessor :nX
@@ -245,7 +270,7 @@ class PreguntaExigePar < Pregunta
     @ok=true
   end
 end
-
+#
 #TODO COSTURAS en total
 class PreguntaCXC < Pregunta 
   attr_reader :cXC
@@ -257,7 +282,7 @@ class PreguntaCXC < Pregunta
     @ok=true
   end
 end
-
+#
 class PreguntaEscalado < Pregunta
   attr_accessor :tipo
   def initialize(tipo)
@@ -269,7 +294,7 @@ class PreguntaEscalado < Pregunta
     @ok=true
   end
 end
-
+#
 class PreguntaTodasPag < Pregunta
   attr_accessor :nPliegos, :nX, :nY, :caben, :tiene
   def initialize(nPliegos, nX, nY, caben, tiene)
@@ -284,7 +309,7 @@ class PreguntaTodasPag < Pregunta
     @ok=true
   end
 end
-
+#
 class PreguntaReducir < Pregunta
   attr_reader :q, :cuadernillosPorCostura, :paginasSobran, :nCuad, :sobranMenos
   def initialize(cuadernillosPorCostura, paginasSobran, nCuad, sobranMenos, q)

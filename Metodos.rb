@@ -35,7 +35,7 @@ def checks(requerimientos, work, entrada, salida)
   $requerimientos.each do |k,v|
     `which #{v}`
     if !$?.success? then
-      return Mensaje.new(3,"#{v} no es ejecutable")
+      return Clases::Mensaje.new(3,"#{v} no es ejecutable")
     end  
   end
   #archivos
@@ -48,10 +48,10 @@ def checks(requerimientos, work, entrada, salida)
       Dir.mkdir($dir)
       $codeDir = Dir.pwd
     else
-    return Mensaje.new(3,"el directorio de trabajo "+work+" no se puede escribir")
+    return Clases::Mensaje.new(3,"el directorio de trabajo "+work+" no se puede escribir")
     end 
   else
-  return Mensaje.new(3,"el directorio de trabajo "+work+ " no existe")
+  return Clases::Mensaje.new(3,"el directorio de trabajo "+work+ " no existe")
   end
   #la entrada
   if entrada != nil then
@@ -62,23 +62,23 @@ def checks(requerimientos, work, entrada, salida)
           $temp=$dir+"/"+File.basename(entrada)#me lo llevo
           FileUtils.cp(entrada, $temp)
         else
-        return Mensaje.new(3,"el archivo "+entrada+" no es pdf")
+        return Clases::Mensaje.new(3,"el archivo "+entrada+" no es pdf")
         end
       else
-      return Mensaje.new(3,"el archivo "+entrada+" no es mío")
+      return Clases::Mensaje.new(3,"el archivo "+entrada+" no es mío")
       end
     else
-    return Mensaje.new(3,entrada+" no es un archivo")
+    return Clases::Mensaje.new(3,entrada+" no es un archivo")
     end
   else
-    return Mensaje.new(3,"no ha especificado archivo a imponer")
+    return Clases::Mensaje.new(3,"no ha especificado archivo a imponer")
   end
   #y la salida, de haberla
   if $salida!=nil then
   #if File.exists?(salida) then #TODO crearla si es escribible
     salidaDir=File.dirname($salida)
     if !File.writable?(salidaDir) or !File.writable_real?(salidaDir) then
-      return Mensaje.new(3,"el directorio de salida "+$salida+" no se puede escribir")
+      return Clases::Mensaje.new(3,"el directorio de salida "+$salida+" no se puede escribir")
     end 
   #else
   # puts salida+ " no existe"
@@ -652,7 +652,7 @@ def self.validacion(impostor, preguntas)
     if impostor.nPliegos==0 then
       impostor.nPliegos=nPliegosCalc
       if impostor.nPliegos%2!=0 then
-        mensajes.push(Clases::Mensaje.new(1,"como son cuadernillos lado y lado los pliegos no pueden ser impares, se toman #{impostor.nPliegos}+1"))
+        mensajes.push(Clases::MensajeLadoLado.new(impostor.nPliegos))
         impostor.nPliegos=(impostor.nPliegos.to_f/2).ceil*2
         impostor.nPaginas=impostor.nPliegos*nXm*impostor.nY
       end
