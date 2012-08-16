@@ -94,17 +94,17 @@ end
 #WORK
 def funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas)
   impostor=Clases::Imposicion.new(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos)
-  pdfinfo(impostor, temp)
+  pdfinfo(impostor, $temp)
   retorno=validacion(impostor, preguntas)
   if retorno.preguntasOk then
-    retorno.mensajes.push(Clases::Mensaje.new(impostor.to_s))
+    retorno.mensajes.push(Clases::Mensaje.new(1,impostor.to_s))
     if impostor.cuadernillos then
-      retorno.mensajes.push(imponerBooklet(impostor, temp))
+      retorno.mensajes.push(imponerBooklet(impostor, $temp))
     end
-    retorno.mensajes.push(imponerStack(impostor, temp))
+    retorno.mensajes.push(imponerStack(impostor, $temp))
     #lo devuelvo
-    if salida != nil then
-      entrada=salida
+    if $salida != nil then
+      entrada=$salida
     end
     FileUtils.mv($dir+"/"+"cutStack.pdf", entrada)
   end

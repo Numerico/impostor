@@ -4,7 +4,7 @@ module 	Clases
 class Imposicion
   attr_accessor :w, :w_, :wP, :wP_, :nX, :wReal, :h, :h_, :hP, :hP_, :nY, :hReal, :size, :cuadernillos, :nPaginas, :nPliegos, :nPaginasReal, :cuadernillosPorCostura, :bookletz
   def initialize(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos)
-    @w_=w _
+    @w_=w_
     @h_=h_
     @wP_=wP_
     @hP_=hP_
@@ -19,10 +19,10 @@ class Imposicion
     @wP=@wP_["numero"].send(@wP_["unidad"])
     @hP=@hP_["numero"].send(@hP_["unidad"])
     #sin unidad
-    @nX=@nX_["numero"].to_f.floor
-    @nY=@nY_["numero"].to_f.floor
-    @nPaginas=@nPaginas_["numero"].to_f.floor
-    @nPliegos=@nPliegos_["numero"].to_f.floor
+    @nX=@nX["numero"].to_f.floor
+    @nY=@nY["numero"].to_f.floor
+    @nPaginas=@nPaginas["numero"].to_f.floor
+    @nPliegos=@nPliegos["numero"].to_f.floor
   end
   def to_s
     nXm=@nX
@@ -291,6 +291,7 @@ class PreguntaReducir < Pregunta
 end
 
 class RespuestaImpostor
+  attr_accessor :mensajes, :preguntas
   def initialize(preguntas,mensajes)
     @preguntas=preguntas
     @mensajes=mensajes

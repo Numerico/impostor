@@ -14,7 +14,7 @@ require 'alchemist'
 #CONSOLA
 #vars
 entrada=ARGV.shift
-salida=ARGV.shift
+$salida=ARGV.shift
 #paquetes
 $requerimientos=Hash.new
 $requerimientos["pdflatex"]="pdflatex"
@@ -50,8 +50,8 @@ if entrada != nil then
 		if File.owned?(entrada) then
 			busca = /.*(.pdf)/
 			if busca.match(File.basename(entrada)) then
-				temp=$dir+"/"+File.basename(entrada)#me lo llevo
-				FileUtils.cp(entrada, temp)
+				$temp=$dir+"/"+File.basename(entrada)#me lo llevo
+				FileUtils.cp(entrada, $temp)
 			else
 			puts "el archivo "+entrada+" no es pdf"#TODO esto es lo único que se testeará en Rails
 			exit
@@ -68,11 +68,11 @@ else
 	exit
 end
 #y la salida, de haberla
-if salida!=nil then
+if $salida!=nil then
 #if File.exists?(salida) then #TODO crearla si es escribible
-	salidaDir=File.dirname(salida)
+	salidaDir=File.dirname($salida)
 	if !File.writable?(salidaDir) or !File.writable_real?(salidaDir) then
-		puts "el directorio de salida "+salida+" no se puede escribir"
+		puts "el directorio de salida "+$salida+" no se puede escribir"
 		exit
 	end	
 #else
@@ -94,51 +94,52 @@ nPliegos_=Metodos.input("nPliegos:")
 cuadernillos = Metodos.enBooklets()
 
 def recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos, preguntas)
-  impostor=Impostor.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,nil)
-  if retorno.preguntasOk then
-    if retorno.valido then
+  impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas)
+  if impostor.preguntasOk then
+    if impostor.valido then
       puts "::::::::::::mensajes:::::::::::::"#blink blink
       impostor.mensajes.each do |mensaje|
         puts mensaje.mensaje
       end
     else
-      retorno.errores().each do |error|
+      impostor.errores().each do |error|
         puts error.mensaje
       end
       puts "el programa no se ejecutara"
       exit
     end
   else
-    if !retorno.preguntas["par"].ok then
-      puts retorno.preguntas["par"].mensaje
+    if !impostor.preguntas["par"].ok then
+      puts impostor.preguntas["par"].mensaje
       nX=Metodos.exigePar(nX)
-      retorno.preguntas["par"].ok=true
-      recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,retorno.preguntas)
-    elsif !retorno.preguntas["cXC"].ok then
-      puts retorno.preguntas["cXC"].mensaje
+      impostor.preguntas["par"].ok=true
+      recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,impostor.preguntas)
+    elsif !impostor.preguntas["cXC"].ok then
+      puts impostor.preguntas["cXC"].mensaje
       impostor.cuadernillosPorCostura=Metodos.input("cXC:")#TODO
-      retorno.preguntas["cXC"].ok=true
-      recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,retorno.preguntas)
-    elsif !preguntas["escaladoH"].ok then
-      puts !preguntas["escaladoH"].mensaje
-      preguntas["escaladoH"].metodo(Metodos.escalado(preguntas["escaladoH"].tipo))
-      preguntas["escaladoH"].ok=true
-      recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,retorno.preguntas)
-    elsif !preguntas["escaladoV"].ok then
-      puts preguntas["escaladoV"].mensaje
-      preguntas["escaladoV"].metodo(Metodos.escalado(preguntas["escaladoV"].tipo)).
-      recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,retorno.preguntas)
-    elsif !preguntas["todasPag"].ok then
-      puts preguntas["todasPag"].mensaje
-      preguntas["todasPag"].metodo(Metodos.todasPag(preguntas["todasPag"].nPliegos, preguntas["todasPag"].nX, preguntas["todasPag"].nY, preguntas["todasPag"].caben, preguntas["todasPag"].tiene))
-      recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,retorno.preguntas)
-    elsif !preguntas["reducir"].ok then
-      puts preguntas["reducir"].mensaje
-      preguntas["reducir"].metodo(Metodos.reducirUltimo(preguntas["reducir"].cuadernillosPorCostura, preguntas["reducir"].paginasSobran, preguntas["reducir"].nCuad, preguntas["reducir"].sobranMenos))
-      recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,retorno.preguntas)
+      impostor.preguntas["cXC"].ok=true
+      recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,impostor.preguntas)
+    elsif !impostor.preguntas["escaladoH"].ok then
+      puts !impostor.preguntas["escaladoH"].mensaje
+      impostor.preguntas["escaladoH"].metodo(Metodos.escalado(impostor.preguntas["escaladoH"].tipo))
+      impostor.preguntas["escaladoH"].ok=true
+      recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,impostor.preguntas)
+    elsif !impostor.preguntas["escaladoV"].ok then
+      puts impostor.preguntas["escaladoV"].mensaje
+      impostor.preguntas["escaladoV"].metodo(Metodos.escalado(impostor.preguntas["escaladoV"].tipo))
+      recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,impostor.preguntas)
+    elsif !impostor.preguntas["todasPag"].ok then
+      puts impostor.preguntas["todasPag"].mensaje
+      impostor.preguntas["todasPag"].metodo(Metodos.todasPag(impostor.preguntas["todasPag"].nPliegos, impostor.preguntas["todasPag"].nX, impostor.preguntas["todasPag"].nY, impostor.preguntas["todasPag"].caben, impostor.preguntas["todasPag"].tiene))
+      recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,impostor.preguntas)
+    elsif !impostor.preguntas["reducir"].ok then
+      puts impostor.preguntas["reducir"].mensaje
+      impostor.preguntas["reducir"].metodo(Metodos.reducirUltimo(impostor.preguntas["reducir"].cuadernillosPorCostura, impostor.preguntas["reducir"].paginasSobran, impostor.preguntas["reducir"].nCuad, impostor.preguntas["reducir"].sobranMenos))
+      recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,impostor.preguntas)
     end
   end
 end
+recursivo(w_,h_,wP_,hP_,nX_,nY_,nPaginas_,nPliegos_,cuadernillos, nil)
   
 puts "::::::::::::Game Over::::::::::::"#blink blink
 ensure
