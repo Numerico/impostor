@@ -3,7 +3,27 @@ module 	Clases
   
 class Imposicion
   attr_accessor :w, :w_, :wP, :wP_, :nX, :wReal, :h, :h_, :hP, :hP_, :nY, :hReal, :size, :cuadernillos, :nPaginas, :nPliegos, :nPaginasReal, :cuadernillosPorCostura, :bookletz
-  
+  def initialize(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos)
+    @w_=w _
+    @h_=h_
+    @wP_=wP_
+    @hP_=hP_
+    @nX=nX
+    @nY=nY
+    @nPaginas=nPaginas
+    @nPliegos=nPliegos
+    @cuadernillos=cuadernillos
+    #con unidad
+    @w=@w_["numero"].send(@w_["unidad"])
+    @h=@h_["numero"].send(@h_["unidad"])
+    @wP=@wP_["numero"].send(@wP_["unidad"])
+    @hP=@hP_["numero"].send(@hP_["unidad"])
+    #sin unidad
+    @nX=@nX_["numero"].to_f.floor
+    @nY=@nY_["numero"].to_f.floor
+    @nPaginas=@nPaginas_["numero"].to_f.floor
+    @nPliegos=@nPliegos_["numero"].to_f.floor
+  end
   def to_s
     nXm=@nX
     if @cuadernillos then
@@ -185,6 +205,22 @@ class MensajeMedida < Mensaje
 	end
 end
 
+class MensajeTiempo < Mensaje
+  def initialize(tipo,tiempo)
+    @level=1
+    if tipo==1 then#booklets
+      @mensaje="::::::::::::booklets:::::::::::::\n"#blink blink
+      @mensaje+="booklets: "
+    elsif tipo==2 then
+      @mensaje="::::::::::::cut&Stack::::::::::::"#blink blink
+      @mensaje+="cut&Stack: "
+    end  
+    @mensaje+=@tiempo.to_s+" segundos"
+    @tiempo=tiempo
+    super(level,mensaje)
+  end
+end
+
 class Pregunta
   attr_accessor :ok, :yn
   def initialize(mensaje)
@@ -194,8 +230,51 @@ class Pregunta
   end
 end
 
+class PreguntaExigePar < Pregunta
+  attr_accessor :nX
+  def initialize(nX)
+    @mensaje="para imponer en cuadernillos tienen que caber horizontalmente en numeros pares pero ud especifico nX:#{@nX}."
+    @nX=nX
+    @ok=false
+  end
+end
+
+class PreguntaCXC < Pregunta #TODO COSTURAS en total
+  #attr_accessor :cXC
+  def initialize()
+    @mensaje="cXC - cuadernillos por costura (0->todos unos dentro de otros, 1->todos uno al lado de otro o n-> de a n cuadernillos uno dentro de otro)"
+  end
+end
+
+class PreguntaEscalado < Pregunta
+  attr_accessor :tipo
+  def initialize(tipo)
+    @mensaje="en duro"
+    @tipo=tipo
+  end
+  def metodo(yn)
+    @yn=yn
+    @ok=true
+  end
+end
+
+class PreguntaTodasPag < Pregunta
+  attr_accessor :nPliegos, :nX, :nY, :caben, :tiene
+  def initialize(nPliegos, nX, nY, caben, tiene)
+    @nPliegos=nPliegos
+    @nX=nX
+    @nY=nY
+    @caben=caben
+    @tiene=tiene
+  end
+  def metodo(yn)
+    @yn=yn
+    @ok=true
+  end
+end
+
 class PreguntaReducir < Pregunta
-  attr_reader :q
+  attr_reader :q, :cuadernillosPorCostura, :paginasSobran, :nCuad, :sobranMenos
   def initialize(cuadernillosPorCostura, paginasSobran, nCuad, sobranMenos, q)
     @mensaje="en duro"
     @cuadernillosPorCostura=cuadernillosPorCostura
@@ -205,34 +284,37 @@ class PreguntaReducir < Pregunta
     @q=q
     super(@mensaje)
   end
-  def metodo()
-    @yn=Metodos.reducirUltimo(@cuadernillosPorCostura, @paginasSobran, @nCuad, @sobranMenos)
+  def metodo(yn)
+    @yn=yn
     @ok=true
   end
 end
 
-class PreguntaEscalado < Pregunta
-  def initialize(tipo)
-    @mensaje="en duro"
-    @tipo=tipo
+class RespuestaImpostor
+  def initialize(preguntas,mensajes)
+    @preguntas=preguntas
+    @mensajes=mensajes
   end
-  def metodo()
-    @yn=Metodos.escalado(@tipo)
-    @ok=true
+  def preguntasOk()
+    todoOk=true
+    @preguntas.each do |k,v|
+      if v!=nil and !v.ok then
+        todoOk=false
+      end
+    end
+    return todoOk
   end
-end
-
-class PreguntaTodasPag < Pregunta
-  def initialize(nPliegos, nX, nY, caben, tiene)
-    @nPliegos=nPliegos
-    @nX=nX
-    @nY=nY
-    @caben=caben
-    @tiene=tiene
+  def errores()
+    errores=[]
+    @mensajes.each do |mensaje|
+      if mensaje.level==3 then
+        errores.push(mensaje)
+      end
+    end
+    return errores
   end
-  def metodo()
-    @yn=Metodos.todasPag(@nPliegos, @nX, @nY, @caben, @tiene)
-    @ok=true
+  def valido()
+    return errores().size==0
   end
 end
 

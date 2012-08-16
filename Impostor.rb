@@ -1,21 +1,20 @@
 begin
 
-#links
+#####
+#GEMA
 require 'Clases'
 require 'Metodos'
-#
+#  
 require 'rubygems'
-require 'alchemist'
 require 'uuidtools'
 require 'fileutils'
+require 'alchemist'
 
 ########
 #CONSOLA
-
 #vars
 entrada=ARGV.shift
 salida=ARGV.shift
-
 #paquetes
 $requerimientos=Hash.new
 $requerimientos["pdflatex"]="pdflatex"
@@ -28,9 +27,7 @@ $requerimientos.each do |k,v|
     exit
   end  
 end
-
 #archivos
-
 work="/tmp/impostor"
 #probamos que exista el directorio de trabajo
 if File.exists?(work) then
@@ -85,99 +82,65 @@ if salida!=nil then
 end
 
 puts "::::::::::::impostor::::::::::::"#blink blink
-
-#####
-#GEMA
-
-impostor=Clases::Imposicion.new
-
-#1° REQUEST (archivo)
-Metodos.pdfinfo(impostor, temp)
-
-#2° REQUEST (parametros)
 #INPUT
-impostor.w_=Metodos.input("w:")
-impostor.h_=Metodos.input("h:")
-impostor.wP_=Metodos.input("W:")
-impostor.hP_=Metodos.input("H:")
+w_=Metodos.input("w:")
+h_=Metodos.input("h:")
+wP_=Metodos.input("W:")
+hP_=Metodos.input("H:")
 nX_=Metodos.input("nX:")
 nY_=Metodos.input("nY:")
 nPaginas_=Metodos.input("nPaginas:")
 nPliegos_=Metodos.input("nPliegos:")
-impostor.cuadernillos = Metodos.enBooklets()
-#con unidad
-impostor.w=impostor.w_["numero"].send(impostor.w_["unidad"])
-impostor.h=impostor.h_["numero"].send(impostor.h_["unidad"])
-impostor.wP=impostor.wP_["numero"].send(impostor.wP_["unidad"])
-impostor.hP=impostor.hP_["numero"].send(impostor.hP_["unidad"])
-#sin unidad
-impostor.nX=nX_["numero"].to_f.floor
-impostor.nY=nY_["numero"].to_f.floor
-impostor.nPaginas=nPaginas_["numero"].to_f.floor
-impostor.nPliegos=nPliegos_["numero"].to_f.floor
+cuadernillos = Metodos.enBooklets()
 
-#1° VALIDACION (cuadernillos) - javascripteable
-if impostor.cuadernillos then
+def recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos, preguntas)
+  impostor=Impostor.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,nil)
+  if retorno.preguntasOk then
+    if retorno.valido then
+      puts "::::::::::::mensajes:::::::::::::"#blink blink
+      impostor.mensajes.each do |mensaje|
+        puts mensaje.mensaje
+      end
+    else
+      retorno.errores().each do |error|
+        puts error.mensaje
+      end
+      puts "el programa no se ejecutara"
+      exit
+    end
+  else
+    if !retorno.preguntas["par"].ok then
+      puts retorno.preguntas["par"].mensaje
+      nX=Metodos.exigePar(nX)
+      retorno.preguntas["par"].ok=true
+      recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,retorno.preguntas)
+    elsif !retorno.preguntas["cXC"].ok then
+      puts retorno.preguntas["cXC"].mensaje
+      impostor.cuadernillosPorCostura=Metodos.input("cXC:")#TODO
+      retorno.preguntas["cXC"].ok=true
+      recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,retorno.preguntas)
+    elsif !preguntas["escaladoH"].ok then
+      puts !preguntas["escaladoH"].mensaje
+      preguntas["escaladoH"].metodo(Metodos.escalado(preguntas["escaladoH"].tipo))
+      preguntas["escaladoH"].ok=true
+      recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,retorno.preguntas)
+    elsif !preguntas["escaladoV"].ok then
+      puts preguntas["escaladoV"].mensaje
+      preguntas["escaladoV"].metodo(Metodos.escalado(preguntas["escaladoV"].tipo)).
+      recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,retorno.preguntas)
+    elsif !preguntas["todasPag"].ok then
+      puts preguntas["todasPag"].mensaje
+      preguntas["todasPag"].metodo(Metodos.todasPag(preguntas["todasPag"].nPliegos, preguntas["todasPag"].nX, preguntas["todasPag"].nY, preguntas["todasPag"].caben, preguntas["todasPag"].tiene))
+      recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,retorno.preguntas)
+    elsif !preguntas["reducir"].ok then
+      puts preguntas["reducir"].mensaje
+      preguntas["reducir"].metodo(Metodos.reducirUltimo(preguntas["reducir"].cuadernillosPorCostura, preguntas["reducir"].paginasSobran, preguntas["reducir"].nCuad, preguntas["reducir"].sobranMenos))
+      recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,retorno.preguntas)
+    end
+  end
+end
   
-  if impostor.nX%2!=0 then
-    impostor.nX=Metodos.exigePar(impostor.nX) #TODO sugerencia si + o -
-  end
-  
-  #Nuevos parametros
-  #TODO COSTURAS en total
-  puts "cXC - cuadernillos por costura (0->todos unos dentro de otros, 1->todos uno al lado de otro o n-> de a n cuadernillos uno dentro de otro)"
-  impostor.cuadernillosPorCostura=Metodos.input("cXC:")
-  impostor.cuadernillosPorCostura=impostor.cuadernillosPorCostura["numero"]
-
-  impostor.nX=impostor.nX/2
-  puts "como imponemos en cuadernillos, tomamos la mitad de paginas horizontalmente"#TODO mensaje
-  impostor.w=impostor.w*2
-  impostor.w_["numero"]=impostor.w
-  puts "como imponemos en cuadernillos, tomamos una pagina del doble de ancho"#TODO mensaje
-end
-
-#2° VALIDACION
-retorno=Metodos.validacionRecursiva(impostor, nil, nil)
-
-puts "::::::::::::mensajes:::::::::::::"#blink blink
-#TODO si hay error mostrar solo errores
-valido=true
-mensajes=retorno.shift
-mensajes.each do |mensaje|
-  puts mensaje.to_s
-  if mensaje.level==3 then
-    valido=false
-  end
-end
-
-#EJECUCION
-if !valido then
-	puts "el programa no se ejecutara"#TODO mensaje
-	exit
-else
-  if impostor.cuadernillos then
-    puts "::::::::::::booklets:::::::::::::"#blink blink
-    tIni=Time.now
-  	  Metodos.imponerBooklet(impostor, temp)#TODO 1 sola vez pdflatex?
-  	tFin=Time.now
-    t=tFin-tIni
-    puts "booklets: "+t.to_s+" segundos"
-  end
-  puts "::::::::::::cut&Stack::::::::::::"#blink blink
-  puts impostor.to_s
-  tIni=Time.now
-    Metodos.imponerStack(impostor, temp)
-	tFin=Time.now
-  t=tFin-tIni
-  puts "cut&Stack: "+t.to_s+" segundos"
-	#lo devuelvo
-	if salida != nil then
-		entrada=salida
-	end
-	FileUtils.mv($dir+"/"+"cutStack.pdf", entrada)
-	puts "::::::::::::Game Over::::::::::::"#blink blink
-end
-
+puts "::::::::::::Game Over::::::::::::"#blink blink
 ensure
   #limpio todo, aunque se caiga
   if $dir!=nil then

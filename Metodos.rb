@@ -39,7 +39,7 @@ def enBooklets()
   end
 end
 
-def exigePar(nX)
+def exigePar(nX) #TODO sugerencia si + o -
   puts "para imponer en cuadernillos tienen que caber horizontalmente en numeros pares pero ud especifico nX:#{nX}."
   nX=input("nX:")
   nX=nX["numero"]
@@ -91,26 +91,31 @@ def reducirUltimo(cuadernillosPorCostura, paginasSobran, nCuad, sobranMenos)
   end
 end
 
-def validacionRecursiva(impostor, preguntas, mensajes)
-  retorno=validacion(impostor, preguntas, mensajes)
-  preguntas=retorno.pop
-  todoOk=true
-  preguntas.each do |k,v|
-    if v!=nil and !v.ok then
-      todoOk=false
-      v.metodo()
+#WORK
+def funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas)
+  impostor=Clases::Imposicion.new(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos)
+  pdfinfo(impostor, temp)
+  retorno=validacion(impostor, preguntas)
+  if retorno.preguntasOk then
+    retorno.mensajes.push(Clases::Mensaje.new(impostor.to_s))
+    if impostor.cuadernillos then
+      retorno.mensajes.push(imponerBooklet(impostor, temp))
     end
+    retorno.mensajes.push(imponerStack(impostor, temp))
+    #lo devuelvo
+    if salida != nil then
+      entrada=salida
+    end
+    FileUtils.mv($dir+"/"+"cutStack.pdf", entrada)
   end
-  if !todoOk then
-    mensajes=retorno.pop
-    retorno=Metodos.validacionRecursiva(impostor, preguntas, mensajes)
-  else
-    return retorno
-  end
+  return retorno
 end
 
-#WORK
-def pdfinfo(impostor, temp)
+#########
+module_function :input, :enBooklets, :exigePar, :escalado, :todasPag, :reducirUltimo, :funcionar
+#########
+
+def self.pdfinfo(impostor, temp)
   Dir.chdir($dir)
   pdfinfo = `#{$requerimientos["pdfinfo"]} -box #{temp}`
   impostor.nPaginasReal=paginasdelpdf(pdfinfo)
@@ -120,7 +125,40 @@ def pdfinfo(impostor, temp)
   Dir.chdir($codeDir)
 end
 
-def imponerStack(impostor, temp)
+def self.paginasdelpdf(pdfinfo)
+  info = pdfinfo.chomp
+  busca = /pages\s*\:\s*(\d+)/moi
+  pags = busca.match(info)
+  paginas = pags[1]
+  return paginas.to_i 
+end
+
+#tamaño de página
+def self.pagesize(pdfinfo)
+  info = pdfinfo.chomp
+  busca = /Page size\s*\:\s*([\d\.]+)\s*x\s*([\d\.]+).*/
+  pags = busca.match(info)
+  retorno=Hash.new
+  splitted=pags[0].split(" ")
+  unidad=splitted[5]
+    #unidades pdfinfo 2 alchemist
+    if unidad=="pts" then
+      unidad="point"
+    #TODO elsif...
+    else#default
+      unidad="point"
+    end
+  retorno["unidad"]=unidad
+  #con unidad
+  retorno["ancho"]=pags[1].to_f.send(unidad)
+  retorno["alto"]=pags[2].to_f.send(unidad)
+  if splitted[6]!=nil then
+    retorno["nombre"]=splitted[6].delete("(").delete(")")
+  end
+  return retorno
+end
+
+def self.imponerStack(impostor, temp)
   
   wPC=pdflatexUnit(impostor.wP, impostor.wP_["unidad"])
   impostor.wP=wPC[0]
@@ -168,12 +206,19 @@ def imponerStack(impostor, temp)
   
   #LaTeX
   Dir.chdir($dir)
+  tIni=Time.now
   pdflatex=`#{$requerimientos["pdflatex"]} #{cutted}`
+  tFin=Time.now
+  t=tFin-tIni
   Dir.chdir($codeDir)
   
+  #retorno
+  return Clases::MensajeTiempo.new(2,t)
 end
 
-def imponerBooklet(impostor, archivo)
+#TODO 1 sola vez pdflatex?
+
+def self.imponerBooklet(impostor, archivo)
   #unidades latex
   wC=pdflatexUnit(impostor.w_["numero"], impostor.w_["unidad"])
   impostor.w=wC[0]
@@ -206,48 +251,15 @@ def imponerBooklet(impostor, archivo)
   end
   #LaTeX
   Dir.chdir($dir)
+  tIni=Time.now
   pdflatex=`#{$requerimientos["pdflatex"]} #{pierpa}`
+  tFin=Time.now
+  t=tFin-tIni
   Dir.chdir($codeDir)
-  
   #lo devuelvo
   FileUtils.mv($dir+"/"+"booKlet.pdf", archivo)
-end
-
-#########
-module_function :input, :enBooklets, :exigePar, :escalado, :todasPag, :reducirUltimo, :pdfinfo, :validacionRecursiva, :imponerStack, :imponerBooklet
-#########
-
-def self.paginasdelpdf(pdfinfo)
-  info = pdfinfo.chomp
-  busca = /pages\s*\:\s*(\d+)/moi
-  pags = busca.match(info)
-  paginas = pags[1]
-  return paginas.to_i 
-end
-
-#tamaño de página
-def self.pagesize(pdfinfo)
-  info = pdfinfo.chomp
-  busca = /Page size\s*\:\s*([\d\.]+)\s*x\s*([\d\.]+).*/
-  pags = busca.match(info)
-  retorno=Hash.new
-  splitted=pags[0].split(" ")
-  unidad=splitted[5]
-    #unidades pdfinfo 2 alchemist
-    if unidad=="pts" then
-      unidad="point"
-    #TODO elsif...
-    else#default
-      unidad="point"
-    end
-  retorno["unidad"]=unidad
-  #con unidad
-  retorno["ancho"]=pags[1].to_f.send(unidad)
-  retorno["alto"]=pags[2].to_f.send(unidad)
-  if splitted[6]!=nil then
-    retorno["nombre"]=splitted[6].delete("(").delete(")")
-  end
-  return retorno
+  #retorno
+  return Clases::MensajeTiempo.new(1,t)
 end
 
 def self.myPlacePDF(nX,nY,nPaginas,nPliegos)
@@ -445,12 +457,24 @@ def self.cortarCola(nPaginas, pagsEnCuadernillo, cuadernillosPorCostura)
   end
 end
 
-def self.validacion(impostor, preguntas, mensajes)
-  if mensajes==nil then
-    mensajes=[]
-  end
+def self.validacion(impostor, preguntas)
+  mensajes=[]
   if preguntas==nil then
     preguntas=Hash.new
+  end
+  if impostor.cuadernillos then
+    if impostor.nX%2!=0 then
+      preguntas["par"]=Clases::PreguntaExigePar.new(impostor.nX)
+    end
+    if impostor.cuadernillosPorCostura==nil then
+        preguntas["cXC"]=Clases::PreguntaCXC.new()
+    else
+      impostor.cuadernillosPorCostura=impostor.cuadernillosPorCostura["numero"]
+    end  
+    impostor.nX=impostor.nX/2
+    impostor.w=impostor.w*2
+    impostor.w_["numero"]=impostor.w
+    mensajes.push(Clases::Mensaje.new(1, "como imponemos en cuadernillos, tomamos la mitad de paginas horizontalmente y una pagina del doble de ancho"))
   end
   #HORIZONTALMENTE
   if impostor.w!=0.point then
@@ -682,8 +706,8 @@ def self.validacion(impostor, preguntas, mensajes)
     impostor.nPaginas=(impostor.nPaginas/(impostor.nX*impostor.nY)+1)*(impostor.nX*impostor.nY)
     mensajes.push(Clases::Mensaje.new(1, "El pdf tiene #{impostor.nPaginasReal} paginas, que impuestas en #{impostor.nX}x#{impostor.nY} son #{impostor.nPaginas} paginas"))
   end
-  #TODO ¿ROTAR? si se gasta menos espacio por pliego o en total da menos pliegos...
-  return [mensajes, preguntas]
+  #TODO ¿ROTAR? si se gasta menos espacio por pliego o en total da menos pliegos
+  return Clases::RespuestaImpostor.new(preguntas,mensajes)
 end
 
 end
