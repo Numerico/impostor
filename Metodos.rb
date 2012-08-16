@@ -40,7 +40,6 @@ def enBooklets()
 end
 
 def exigePar(nX) #TODO sugerencia si + o -
-  puts "para imponer en cuadernillos tienen que caber horizontalmente en numeros pares pero ud especifico nX:#{nX}."
   nX=input("nX:")
   nX=nX["numero"]
   if nX%2!=0 then
@@ -464,12 +463,18 @@ def self.validacion(impostor, preguntas)
   end
   if impostor.cuadernillos then
     if impostor.nX%2!=0 then
-      preguntas["par"]=Clases::PreguntaExigePar.new(impostor.nX)
+      if preguntas["par"]==nil or !preguntas["par"].ok then
+        preguntas["par"]=Clases::PreguntaExigePar.new(impostor.nX)
+        return Clases::RespuestaImpostor.new(preguntas,mensajes)
+      else
+        impostor.nX=preguntas["par"].nX
+      end
     end
-    if impostor.cuadernillosPorCostura==nil then
+    if preguntas["cXC"]==nil or !preguntas["cXC"].ok then
         preguntas["cXC"]=Clases::PreguntaCXC.new()
+        return Clases::RespuestaImpostor.new(preguntas,mensajes)
     else
-      impostor.cuadernillosPorCostura=impostor.cuadernillosPorCostura["numero"]
+      impostor.cuadernillosPorCostura=preguntas["cXC"].cXC
     end  
     impostor.nX=impostor.nX/2
     impostor.w=impostor.w*2
@@ -669,7 +674,7 @@ def self.validacion(impostor, preguntas)
     if impostor.nPliegos==0 then
       impostor.nPliegos=nPliegosCalc
       if impostor.nPliegos%2!=0 then
-        puts "como son cuadernillos lado y lado los pliegos no pueden ser impares, se toman #{impostor.nPliegos}+1"#TODO mensaje
+        mensajes.push(Clases::Mensaje.new(1,"como son cuadernillos lado y lado los pliegos no pueden ser impares, se toman #{impostor.nPliegos}+1"))
         impostor.nPliegos=(impostor.nPliegos.to_f/2).ceil*2
         impostor.nPaginas=impostor.nPliegos*nXm*impostor.nY
       end
@@ -685,6 +690,7 @@ def self.validacion(impostor, preguntas)
     end
   end
   if impostor.cuadernillos then
+    q=nil
     impostor.nPaginas=mult4(impostor.nPaginas)
     if impostor.cuadernillosPorCostura==0 then
       pagsEnCuadernillo=impostor.nPaginas#todos unos dentro de otros
@@ -695,13 +701,11 @@ def self.validacion(impostor, preguntas)
       preguntas["reducir"]=cortarCola(impostor.nPaginas, pagsEnCuadernillo, impostor.cuadernillosPorCostura)
     else
       if preguntas["reducir"].yn then
-        q=preguntas["reducir"].q
-      else
-        q=nil
-      end
-      impostor.bookletz=booklets(pagsEnCuadernillo, impostor.nPaginas, impostor.nPaginasReal, q)
-      impostor.nPaginas=impostor.bookletz.length/2  
+        q=preguntas["reducir"].q   
+      end  
     end
+    impostor.bookletz=booklets(pagsEnCuadernillo, impostor.nPaginas, impostor.nPaginasReal, q)
+    impostor.nPaginas=impostor.bookletz.length/2
   end
   #nPaginas multiplo de nX*nY
   if impostor.nX*impostor.nY!=0 and impostor.nPaginas%(impostor.nX*impostor.nY)!=0 then

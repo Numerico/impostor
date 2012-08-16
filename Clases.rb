@@ -224,7 +224,7 @@ class MensajeTiempo < Mensaje
 end
 
 class Pregunta
-  attr_accessor :ok, :yn
+  attr_accessor :ok, :yn, :mensaje
   def initialize(mensaje)
     @mensaje=mensaje
   end
@@ -235,16 +235,24 @@ end
 class PreguntaExigePar < Pregunta
   attr_accessor :nX
   def initialize(nX)
-    @mensaje="para imponer en cuadernillos tienen que caber horizontalmente en numeros pares pero ud especifico nX:#{@nX}."
     @nX=nX
+    @mensaje="para imponer en cuadernillos tienen que caber horizontalmente en numeros pares pero ud especifico nX:#{@nX}."
     @ok=false
+  end
+  def metodo(nX)
+    @nX=nX.to_i
+    @ok=true
   end
 end
 
 class PreguntaCXC < Pregunta #TODO COSTURAS en total
-  #attr_accessor :cXC
+  attr_reader :cXC
   def initialize()
     @mensaje="cXC - cuadernillos por costura (0->todos unos dentro de otros, 1->todos uno al lado de otro o n-> de a n cuadernillos uno dentro de otro)"
+  end
+  def metodo(cXC)
+    @cXC=cXC["numero"].to_i
+    @ok=true
   end
 end
 

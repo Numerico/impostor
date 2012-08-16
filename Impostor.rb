@@ -111,13 +111,11 @@ def recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos, preguntas)
   else
     if !impostor.preguntas["par"].ok then
       puts impostor.preguntas["par"].mensaje
-      nX=Metodos.exigePar(nX)
-      impostor.preguntas["par"].ok=true
+      impostor.preguntas["par"].metodo(Metodos.exigePar(nX))
       recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,impostor.preguntas)
     elsif !impostor.preguntas["cXC"].ok then
       puts impostor.preguntas["cXC"].mensaje
-      impostor.cuadernillosPorCostura=Metodos.input("cXC:")#TODO
-      impostor.preguntas["cXC"].ok=true
+      impostor.preguntas["cXC"].metodo(Metodos.input("cXC:"))
       recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,impostor.preguntas)
     elsif !impostor.preguntas["escaladoH"].ok then
       puts !impostor.preguntas["escaladoH"].mensaje
