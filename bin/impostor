@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 begin
-require 'rubygems'
 require 'imposition'
 #METHODS
 def input(nombre)

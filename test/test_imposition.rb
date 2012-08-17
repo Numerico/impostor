@@ -1,4 +1,9 @@
+#TODO por qué tengo que requerir todo esto en test?
 require 'rubygems'
+require 'uuidtools'
+require 'fileutils'
+require 'alchemist'
+#
 require 'test/unit'
 require 'imposition'
 

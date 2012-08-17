@@ -9,5 +9,9 @@ Gem::Specification.new do |s|
   s.files       = Dir['lib/*']
   s.files       +=Dir['lib/imposition/*']
   s.executables << 'impostor'
+  s.add_runtime_dependency 'alchemist'
+  s.add_runtime_dependency 'uuidtools'
+  s.add_runtime_dependency 'fileutils'
+  s.add_development_dependency 'test/unit'
   s.homepage    = 'https://github.com/Numerico/impostor'
 end

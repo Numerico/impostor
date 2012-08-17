@@ -1,9 +1,4 @@
 module Metodos
-  
-require 'rubygems'
-require 'uuidtools'
-require 'fileutils'
-require 'alchemist'
 
 #WORK
 def funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas)
