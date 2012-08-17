@@ -1,12 +1,12 @@
+require 'rubygems'
 require 'test/unit'
-require '../Clases'
-require '../Metodos'
+require 'imposition'
 
 #con qué archivos correr la prueba sí se recibe
-$entrada=ARGV.shift
-$salida=ARGV.shift
+$entrada="/home/roberto/Documentos/e-dit/rails/active_record_querying_archivos/latex/active_record_queryingCuarto.pdf"
+$salida="/home/roberto/Documentos/test.pdf"
 #
-$work="/tmp/impostor"
+$work="/tmp/impostor"#TODO éste no debiera estar
 
 class Resultado
   attr_reader :yn, :msg
@@ -18,7 +18,7 @@ end
 
 class TestImpostor < Test::Unit::TestCase
   def test_check()
-    check=Metodos.checks($requerimientos,$work,$entrada,$salida)
+    check=Metodos.checksRun($entrada,$salida)
     if check.instance_of? Clases::Mensaje then
       msg=check.mensaje
     end

@@ -1,11 +1,8 @@
+#!/usr/bin/env ruby
 begin
-
-#####TODO
-#GEMA
-require 'Clases'
-require 'Metodos'
-
-#MÉThODOS
+require 'rubygems'
+require 'imposition'
+#METHODS
 def input(nombre)
   retorno=Hash.new
   STDOUT.puts(nombre)
@@ -100,12 +97,9 @@ end
 #
 entrada=ARGV.shift
 $salida=ARGV.shift
-#
-work="/tmp/impostor"
-#
-check=Metodos.checks($requerimientos,work,entrada,$salida)
+check=Metodos.checksRun(entrada,$salida)
 if check.instance_of? Clases::Mensaje then
-  puts chek.mensaje
+  puts check.mensaje
   exit
 end
 #

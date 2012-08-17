@@ -5,11 +5,6 @@ require 'uuidtools'
 require 'fileutils'
 require 'alchemist'
 
-#paquetes
-$requerimientos=Hash.new
-$requerimientos["pdflatex"]="pdflatex"
-$requerimientos["pdfinfo"]="pdfinfo"
-
 #WORK
 def funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas)
   impostor=Clases::Imposicion.new(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos)
@@ -30,7 +25,7 @@ def funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas)
   return retorno
 end
 
-def checks(requerimientos, work, entrada, salida)
+def checksCompile(requerimientos, work)
   #paquetes
   $requerimientos.each do |k,v|
     `which #{v}`
@@ -53,6 +48,9 @@ def checks(requerimientos, work, entrada, salida)
   else
   return Clases::Mensaje.new(3,"el directorio de trabajo "+work+ " no existe")
   end
+end
+
+def checksRun(entrada, salida)
   #la entrada
   if entrada != nil then
     if File.file?(entrada) then
@@ -88,7 +86,7 @@ def checks(requerimientos, work, entrada, salida)
 end
 
 #########
-module_function :funcionar, :checks
+module_function :funcionar, :checksCompile, :checksRun
 #########
 
 def self.pdfinfo(impostor, temp)
