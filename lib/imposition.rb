@@ -1,4 +1,10 @@
-#GEMA
+#GEMAS
+#TODO por qué tengo que requerir todo esto?
+require 'rubygems'
+require 'uuidtools'
+require 'fileutils'
+require 'alchemist'
+#Clases
 require 'imposition/clases'
 require 'imposition/metodos'
 #

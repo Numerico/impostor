@@ -1,13 +1,8 @@
-#TODO por qué tengo que requerir todo esto en test?
-require 'rubygems'
-require 'uuidtools'
-require 'fileutils'
-require 'alchemist'
 #
 require 'test/unit'
 require 'imposition'
 
-#con qué archivos correr la prueba sí se recibe
+#con qué archivos correr la prueba sí se recibe TODO
 $entrada="/home/roberto/Documentos/e-dit/rails/active_record_querying_archivos/latex/active_record_queryingCuarto.pdf"
 $salida="/home/roberto/Documentos/test.pdf"
 #
