@@ -79,7 +79,7 @@ class Mix
 end
 
 class Mensaje
-	attr_reader :level, :mensaje
+	attr_reader :id, :level, :mensaje
 	def initialize(level, mensaje)
 		@level=level #1=info, 2=warn, 3=error
 		@mensaje=mensaje
@@ -96,7 +96,7 @@ class Mensaje
 		return @retorno
 	end
 	def ==(msg)
-	  return (!(msg.instance_of? MensajeDato) and !(msg.instance_of? MensajeMedida) and !(msg.instance_of? MensajeTiempo) and !(msg.instance_of? MensajeLadoLado) and @level===msg.level)# and @mensaje==msg.mensaje)
+	  return (!(msg.instance_of? MensajeDato) and !(msg.instance_of? MensajeMedida) and !(msg.instance_of? MensajeTiempo) and !(msg.instance_of? MensajeLadoLado))# and @level===msg.level)# and @mensaje==msg.mensaje)
 	end 
 end
 #

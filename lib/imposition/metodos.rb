@@ -80,9 +80,19 @@ def checksRun(entrada, salida)
   end
 end
 
+#TODO validar que unidad exista en alchemist
+def input2alchemist(unidad)
+  if unidad=="pt" or unidad=="pts" then
+    return "point"
+  elsif unidad=="PT" or unidad=="bp" then
+    return "printer_point"
+  else
+    return unidad.downcase
+  end
+end
+
 #########
-module_function :funcionar, :checksCompile, :checksRun
-#########
+module_function :funcionar, :checksCompile, :checksRun, :input2alchemist
 
 def self.pdfinfo(impostor, temp)
   Dir.chdir($dir)
@@ -365,17 +375,6 @@ def self.unaDentroDeOtra(paginasReal, paginasEnCuadernillo, inicio, fin)
 	return arreglo
 end
 
-#TODO validar que unidad exista en alchemist
-def self.input2alchemist(unidad)
-	if unidad=="pt" or unidad=="pts" then
-		return "point"
-	elsif unidad=="PT" or unidad=="bp" then
-		return "printer_point"
-	else
-		return unidad.downcase
-	end
-end
-
 def self.redondear(n)#por BUG de alchemist (ruby 1.9 tiene round(3))
   (n*1000).round/1000
 end
@@ -446,7 +445,7 @@ def self.validacion(impostor, preguntas)
         return Clases::RespuestaImpostor.new(preguntas,mensajes)
     else
       impostor.cuadernillosPorCostura=preguntas["cXC"].cXC
-    end  
+    end
     impostor.nX=impostor.nX/2
     impostor.w=impostor.w*2
     impostor.w_["numero"]=impostor.w
@@ -480,7 +479,7 @@ def self.validacion(impostor, preguntas)
         preguntas["escaladoH"]=Clases::PreguntaEscalado.new("horizontalmente")
       else
         if preguntas["escaladoH"].yn then
-          impostor.w=(impostor.wP.to_f/impostor.nX).send(impostor.wP_["unidad"])
+          impostor.w=(impostor.wP.to_f/(impostor.nX*(impostor.cuadernillos ? 2 : 1))).send(impostor.wP_["unidad"])#divido en 2 porque ya lo multipliqué
           impostor.w_["numero"]=impostor.w
           impostor.w_["unidad"]=impostor.wP_["unidad"]
           mensajes.push(Clases::MensajeDato.new(1, "horizontal", 3))#info
@@ -499,6 +498,7 @@ def self.validacion(impostor, preguntas)
       if impostor.cuadernillos then
         impostor.w=impostor.w*2
         impostor.w_["numero"]=impostor.w
+        puts impostor.w
       end
       impostor.w_["unidad"]=impostor.size["unidad"]
       mensajes.push(Clases::MensajeDato.new(1, "horizontal", 4))#info

@@ -17,6 +17,53 @@ class Resultado
 end
 
 class TestImpostor < Test::Unit::TestCase
+  
+  #funcionales
+  def siySoloSi(mensajes, esperados)
+    if esperados.size!=mensajes.size then
+      return Resultado.new(false,"hay mas mensajes que los que se espera")
+    end
+    n=0
+    esperados.each do |esperado|
+      esta=false
+      mensajes.each do |mensaje|
+        #mensajes.count(esperado)==1
+        if mensaje==esperado then
+          esta=true
+          n+=1
+        end
+      end
+      if !esta then
+        return Resultado.new(false,"falta mensaje:"+esperado.mensaje)
+      end
+    end
+    if n!=esperados.size then
+      return Resultado.new(false,"hay mas iguales que los que se espera")
+    end
+    return Resultado.new(true,nil)
+  end
+  #
+  def nuevo(valor,unidad)
+    retorno=Hash.new
+    retorno["numero"]=valor
+    retorno["unidad"]=unidad
+    return retorno
+  end
+  #
+  def nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados)
+    impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,nil)
+    if impostor.preguntasOk then
+      if impostor.valido then
+        return siySoloSi(impostor.mensajes,esperados)
+      else
+        return Resultado.new(false,"hay un error")
+      end
+    else
+      return Resultado.new(false,"no se esperan preguntas")
+    end
+  end
+  
+  #general
   def test_check()
     check=Metodos.checksRun($entrada,$salida)
     if check.instance_of? Clases::Mensaje then
@@ -25,6 +72,7 @@ class TestImpostor < Test::Unit::TestCase
     assert((check.instance_of? Clases::Mensaje)!=true, msg)
   end
   
+  #nUp
   def test_nUp
     #TODO YAML
     w_=nuevo(0.point,"point")
@@ -52,47 +100,22 @@ class TestImpostor < Test::Unit::TestCase
     resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados)
     assert(resultado.yn,resultado.msg)
   end
-  #
-  def nuevo(valor,unidad)
-    retorno=Hash.new
-    retorno["numero"]=valor
-    retorno["unidad"]=unidad
-    return retorno
-  end
-  #
-  def nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados)
-    impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,nil)
-    if impostor.preguntasOk then
-      if impostor.valido then
-        return siySoloSi(impostor.mensajes,esperados)
-      else
-        return Resultado.new(false,"hay un error")
-      end
-    else
-      return Resultado.new(false,"no se esperan preguntas")
-    end
-  end
-  def siySoloSi(mensajes, esperados)
-    if esperados.size!=mensajes.size then
-      return Resultado.new(false,"hay mas mensajes que los que se espera")
-    end
-    n=0
-    esperados.each do |esperado|
-      esta=false
-      mensajes.each do |mensaje|
-        #mensajes.count(esperado)==1
-        if mensaje==esperado then
-          esta=true
-          n+=1
-        end
-      end
-      if !esta then
-        return Resultado.new(false,"falta mensaje:"+esperado.mensaje)
-      end
-    end
-    if n!=esperados.size then
-      return Resultado.new(false,"hay mas iguales que los que se espera")
-    end
-    return Resultado.new(true,nil)
-  end
+  
+  #def test_nUpUnidad
+    #TODO YAML
+    #w_=nuevo(0.point,"point")
+    #h_=nuevo(0.point,"point")
+    #wP_=nuevo(279.mm,"mm")
+    #hP_=nuevo(216.mm,"mm")
+    #nX=nuevo(2,nil)
+    #nY=nuevo(1,nil)
+    #nPaginas=""
+    #nPliegos=""
+    #cuadernillos=false
+    
+    #esperados=[]
+    #resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados)
+    #assert(resultado.yn,resultado.msg)
+  #end
+  
 end
