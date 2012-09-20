@@ -6,7 +6,7 @@ def funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas)
   pdfinfo(impostor, $temp)
   retorno=validacion(impostor, preguntas)
   if retorno.preguntasOk then
-    retorno.mensajes.push(Clases::Mensaje.new(1,impostor.to_s))
+    retorno.mensajes.push(Clases::MensajeVars.new(1,impostor.to_s))
     if impostor.cuadernillos then
       retorno.mensajes.push(imponerBooklet(impostor, $temp))
     end
@@ -33,15 +33,19 @@ def checksCompile(requerimientos, work)
   if File.exists?(work) then
     #y que sea escribible
     if File.writable?(work) and File.writable_real?(work) then
+      work+="/impostor"
+      if !File.exists?(work) then
+        Dir.mkdir(work)
+      end
       #creo mi directorio
       $dir=work+"/"+UUIDTools::UUID.random_create
       Dir.mkdir($dir)
       $codeDir = Dir.pwd
     else
-    return Clases::Mensaje.new(3,"el directorio de trabajo "+work+" no se puede escribir")
+      return Clases::Mensaje.new(3,"el directorio de trabajo "+work+" no se puede escribir")
     end 
   else
-  return Clases::Mensaje.new(3,"el directorio de trabajo "+work+ " no existe")
+    return Clases::Mensaje.new(3,"el directorio de trabajo "+work+ " no existe")
   end
 end
 

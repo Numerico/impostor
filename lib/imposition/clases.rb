@@ -80,9 +80,13 @@ end
 
 class Mensaje
 	attr_reader :id, :level, :mensaje
-	def initialize(level, mensaje)
-		@level=level #1=info, 2=warn, 3=error
-		@mensaje=mensaje
+	def initialize(*args)
+	  if args.size==1 then
+	   @id=args[0]
+	  elsif args.size==2 then
+	    @level=args[0] #level 1=info, 2=warn, 3=error
+      @mensaje=args[1]
+	  end
 	end
 	def to_s
 		if @level==1 then
@@ -96,33 +100,32 @@ class Mensaje
 		return @retorno
 	end
 	def ==(msg)
-	  return (!(msg.instance_of? MensajeDato) and !(msg.instance_of? MensajeMedida) and !(msg.instance_of? MensajeTiempo) and !(msg.instance_of? MensajeLadoLado))# and @level===msg.level)# and @mensaje==msg.mensaje)
+	  return @id==msg.id
 	end 
 end
 #
 class MensajeDato < Mensaje
 	attr_reader :tipo, :numero
-	def initialize(level, tipo, numero)
-		@tipo=tipo
-		@numero=numero
-		@mensaje=deducirMensaje(tipo,level,numero)
-		super(level, @mensaje)
-	end
-	def ==(msg)
-	  #super(?)
-	  return (msg.instance_of? MensajeDato and @level==msg.level and @tipo==msg.tipo and @numero==msg.numero)# and @mensaje==msg.mensaje)
-	end
+	def initialize(level,tipo,numero)
+      @level=level
+      @tipo=tipo
+      @numero=numero
+      dd=deducirMensaje(tipo,level,numero)
+      @id=dd[0]
+      @mensaje=dd[1]
+      super(level, @mensaje)
+  end
 	def deducirMensaje(tipo, level, numero)
 		if tipo=="horizontal" then
 			if level==1 then#info
 				if numero==1 then
 					return "se calcula la cantidad de paginas por pliego horizontalmente en base al ancho del pliego y el de la pagina"
 				elsif numero==2 then
-					return "se calcula el ancho del pliego en base al de la pagina y la cantidad de paginas por pliego horizontalmente"
+					return [2,"se calcula el ancho del pliego en base al de la pagina y la cantidad de paginas por pliego horizontalmente"]
 				elsif numero==3 then
 					return "se calcula el ancho de la pagina en base al del pliego y la cantidad de paginas por pliego horizontalmente"
 				elsif numero==4 then
-					return "se toma el ancho real de la pagina"
+					return [1,"se toma el ancho real de la pagina"]
 				end
 			elsif level==3 then#error
 				if numero==1 then
@@ -142,11 +145,11 @@ class MensajeDato < Mensaje
 				if numero==1 then
 					return "se calcula la cantidad de paginas por pliego verticalmente en base al alto del pliego y el de la pagina"
 				elsif numero==2 then
-					return "se calcula el alto del pliego en base al de la pagina y la cantidad de paginas por pliego verticalmente"
+					return [4,"se calcula el alto del pliego en base al de la pagina y la cantidad de paginas por pliego verticalmente"]
 				elsif numero==3 then
 					return "se calcula el alto de la pagina en base al del pliego y la cantidad de paginas por pliego verticalmente"
 				elsif numero==4 then
-					return "se toma el alto real de la pagina"
+					return [3,"se toma el alto real de la pagina"]
 				end
 			elsif level==3 then#error
 				if numero==1 then
@@ -166,9 +169,9 @@ class MensajeDato < Mensaje
 				if numero==1 then
 					return "se calcula el numero de paginas a partir del numero de pliegos y de la cantidad de paginas por pliego"
 				elsif numero==2 then
-					return "se calcula el numero de pliegos a partir del numero de paginas y de la cantidad de paginas por pliego"
+					return [6,"se calcula el numero de pliegos a partir del numero de paginas y de la cantidad de paginas por pliego"]
 				elsif numero==3 then
-					return "se usan todas las paginas del pdf"
+					return [5,"se usan todas las paginas del pdf"]
 				end
 			elsif level==3 then
 				if numero==1 then
@@ -195,9 +198,6 @@ class MensajeMedida < Mensaje
 		@mensaje=deducirMensaje(level, tipo, args)
 		super(level, @mensaje)
 	end
-	def ==(msg)
-	  return (msg.instance_of? MensajeMedida and @level==msg.level and @tipo==msg.tipo) #!args ?
-	end
 	def deducirMensaje(level, tipo, args)
 		if tipo=="horizontal" then
 			if level==3 then
@@ -218,6 +218,7 @@ end
 class MensajeTiempo < Mensaje
   attr_reader :tipo
   def initialize(tipo,tiempo)
+    @id=9#fijo
     @tiempo=tiempo
     @level=1
     if tipo==1 then#booklets
@@ -228,23 +229,28 @@ class MensajeTiempo < Mensaje
       @mensaje+="cut&Stack: "
     end  
     @mensaje+=@tiempo.to_s+" segundos"
-    @tiempo=tiempo
     super(level,mensaje)
-  end
-  def ==(msg)
-    return (msg.instance_of? MensajeTiempo and @tipo==msg.tipo)
   end
 end
 #
 class MensajeLadoLado < Mensaje
   attr_reader :nP
   def initialize(nP)
+    @id=7#fijo
     @nP=nP
     @mensaje="como son cuadernillos lado y lado los pliegos no pueden ser impares, se toman #{@nP}+1"
     super(1,@mensaje)
   end
-  def ==(msg)
-    return (msg.instance_of? MensajeLadoLado and @nP==msg.nP)
+end
+#
+class MensajeVars < Mensaje
+  def initialize(*args)
+    if args.size==0 then
+     super(8)#clásico
+    elsif args.size==2 then
+      @id=8
+      super(args[0],args[1])
+    end
   end
 end
 

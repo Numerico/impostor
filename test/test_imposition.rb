@@ -5,8 +5,7 @@ require 'imposition'
 #con qué archivos correr la prueba sí se recibe TODO
 $entrada="/home/roberto/Documentos/e-dit/rails/active_record_querying_archivos/latex/active_record_queryingCuarto.pdf"
 $salida="/home/roberto/Documentos/test.pdf"
-#
-$work="/tmp/impostor"#TODO éste no debiera estar
+
 
 class Resultado
   attr_reader :yn, :msg
@@ -17,9 +16,9 @@ class Resultado
 end
 
 class TestImpostor < Test::Unit::TestCase
-  
   #funcionales
   def siySoloSi(mensajes, esperados)
+  
     if esperados.size!=mensajes.size then
       return Resultado.new(false,"hay mas mensajes que los que se espera")
     end
@@ -34,7 +33,7 @@ class TestImpostor < Test::Unit::TestCase
         end
       end
       if !esta then
-        return Resultado.new(false,"falta mensaje:"+esperado.mensaje)
+        return Resultado.new(false,"falta mensaje n°"+esperado.id.to_s)
       end
     end
     if n!=esperados.size then
@@ -49,6 +48,7 @@ class TestImpostor < Test::Unit::TestCase
     retorno["unidad"]=unidad
     return retorno
   end
+  #
   #
   def nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados)
     impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,nil)
@@ -85,17 +85,17 @@ class TestImpostor < Test::Unit::TestCase
     nPliegos=""
     cuadernillos=false
     #
-    esperados=[]
-    esperados.push(Clases::MensajeDato.new(1, "horizontal", 4))
-    esperados.push(Clases::MensajeDato.new(1, "horizontal", 2))
-    esperados.push(Clases::MensajeDato.new(1, "vertical", 4))
-    esperados.push(Clases::MensajeDato.new(1, "vertical", 2))
-    esperados.push(Clases::MensajeDato.new(1, "paginas", 3))
-    esperados.push(Clases::MensajeDato.new(1, "paginas", 2))
+    esperados=[]                          #MensajeDatos
+    esperados.push(Clases::Mensaje.new(1))#1, "horizontal", 4
+    esperados.push(Clases::Mensaje.new(2))#1, "horizontal", 2
+    esperados.push(Clases::Mensaje.new(3))#1, "vertical", 4
+    esperados.push(Clases::Mensaje.new(4))#1, "vertical", 2
+    esperados.push(Clases::Mensaje.new(5))#1, "paginas", 3
+    esperados.push(Clases::Mensaje.new(6))#1, "paginas", 2
     #esperados.push(Clases::Mensaje.new(1, "El pdf tiene 30 paginas, que impuestas en 3x3 son 36 paginas"))#TODO
-    esperados.push(Clases::MensajeLadoLado.new(5))
-    esperados.push(Clases::Mensaje.new(1,":::::::::::::::vars:::::::::::::: nX:3 nY:3 nPaginas:54 nPliegos:6 ancho:306.142 point alto:395.433 point anchoPliego:918.426 point altoPliego:1186.299 point"))
-    esperados.push(Clases::MensajeTiempo.new(2,nil))
+    esperados.push(Clases::Mensaje.new(7))#MensajeLadoLado
+    esperados.push(Clases::Mensaje.new(8))#MensajeVars
+    esperados.push(Clases::Mensaje.new(9))#MensajeTiempo
     #
     resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados)
     assert(resultado.yn,resultado.msg)
