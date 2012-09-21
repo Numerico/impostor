@@ -18,8 +18,7 @@ end
 class TestImpostor < Test::Unit::TestCase
   #funcionales
   def siySoloSi(mensajes, esperados)
-  
-    if esperados.size!=mensajes.size then
+    if esperados.size<mensajes.size then
       return Resultado.new(false,"hay mas mensajes que los que se espera")
     end
     n=0
@@ -50,8 +49,8 @@ class TestImpostor < Test::Unit::TestCase
   end
   #
   #
-  def nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados)
-    impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,nil)
+  def nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,preguntas,respuestas)
+    impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas)
     if impostor.preguntasOk then
       if impostor.valido then
         return siySoloSi(impostor.mensajes,esperados)
@@ -59,8 +58,18 @@ class TestImpostor < Test::Unit::TestCase
         return Resultado.new(false,"hay un error")
       end
     else
-      
-      return Resultado.new(false,"no se esperan preguntas")
+      if respuestas.size==0 then
+        return Resultado.new(false,"no se esperan preguntas")
+      else
+        impostor.preguntas.each do |pregunta|
+          respuestas.each do |respuesta|
+            if pregunta[1]==respuesta[0] then#[1] porque preguntas tiene un hash ["escaladoH", PreguntaEscalado], por ej.
+              pregunta[1].metodo(respuesta[1])
+            end
+          end
+        end
+        nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,impostor.preguntas,respuestas)
+      end
     end
   end
   
@@ -75,10 +84,10 @@ class TestImpostor < Test::Unit::TestCase
   
   #nUp
   def test_nUp
-    w_=nuevo(0.point,"point")
-    h_=nuevo(0.point,"point")
-    wP_=nuevo(0.point,"point")
-    hP_=nuevo(0.point,"point")
+    w_=nuevo(0,"point")
+    h_=nuevo(0,"point")
+    wP_=nuevo(0,"point")
+    hP_=nuevo(0,"point")
     nX=nuevo(3,nil)
     nY=nuevo(3,nil)
     nPaginas=""
@@ -92,21 +101,20 @@ class TestImpostor < Test::Unit::TestCase
     esperados.push(Clases::Mensaje.new(4))#1, "vertical", 2
     esperados.push(Clases::Mensaje.new(5))#1, "paginas", 3
     esperados.push(Clases::Mensaje.new(6))#1, "paginas", 2
-    #esperados.push(Clases::Mensaje.new(7))#MensajeLadoLado
     esperados.push(Clases::Mensaje.new(8))#MensajeVars
     esperados.push(Clases::Mensaje.new(9))#MensajeTiempo
     esperados.push(Clases::Mensaje.new(10))#MensajeMultiplo
     #
-    resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados)
+    resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,nil,nil)
     assert(resultado.yn,resultado.msg)
   end
   
   #nUp con unidades
   def test_nUpUnidad
-    w_=nuevo(0.point,"point")
-    h_=nuevo(0.point,"point")
-    wP_=nuevo(279.mm,"mm")
-    hP_=nuevo(216.mm,"mm")
+    w_=nuevo(0,"point")
+    h_=nuevo(0,"point")
+    wP_=nuevo(279,"mm")
+    hP_=nuevo(216,"mm")
     nX=nuevo(2,nil)
     nY=nuevo(1,nil)
     nPaginas=""
@@ -114,14 +122,19 @@ class TestImpostor < Test::Unit::TestCase
     cuadernillos=false
     #
     esperados=[]
-    pregunta1=Clases::PreguntaEscalado.new("horizontalmente")
-    pregunta1.metodo(true)
-    esperados.push(pregunta1)
-    pregunta2=Clases::PreguntaEscalado.new("verticalmente")
-    pregunta2.metodo(true)
-    esperados.push(pregunta2)
+    esperados.push(Clases::Mensaje.new(11))#1, "vertical", 3
+    esperados.push(Clases::Mensaje.new(12))#1, "horizontal", 3
+    esperados.push(Clases::Mensaje.new(5))#1, "paginas", 3
+    esperados.push(Clases::Mensaje.new(7))#MensajeLadoLado
+    esperados.push(Clases::Mensaje.new(6))#1, "paginas", 2
+    esperados.push(Clases::Mensaje.new(8))#MensajeVars
+    esperados.push(Clases::Mensaje.new(9))#MensajeTiempo
     #
-    resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados)
+    respuestas=[]
+    respuestas.push([Clases::PreguntaEscalado.new("horizontalmente"),true])#id:1
+    respuestas.push([Clases::PreguntaEscalado.new("verticalmente"),true])#id:2
+    #
+    resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,nil,respuestas)
     assert(resultado.yn,resultado.msg)
   end
   

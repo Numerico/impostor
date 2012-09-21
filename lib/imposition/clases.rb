@@ -96,7 +96,7 @@ class Mensaje
 		elsif @level==3 then
 			@retorno="ERROR: "
 		end
-		@retorno+=@mensaje
+		@retorno+=@mensaje.to_s
 		return @retorno
 	end
 	def ==(msg)
@@ -123,7 +123,7 @@ class MensajeDato < Mensaje
 				elsif numero==2 then
 					return [2,"se calcula el ancho del pliego en base al de la pagina y la cantidad de paginas por pliego horizontalmente"]
 				elsif numero==3 then
-					return "se calcula el ancho de la pagina en base al del pliego y la cantidad de paginas por pliego horizontalmente"
+					return [12,"se calcula el ancho de la pagina en base al del pliego y la cantidad de paginas por pliego horizontalmente"]
 				elsif numero==4 then
 					return [1,"se toma el ancho real de la pagina"]
 				end
@@ -147,7 +147,7 @@ class MensajeDato < Mensaje
 				elsif numero==2 then
 					return [4,"se calcula el alto del pliego en base al de la pagina y la cantidad de paginas por pliego verticalmente"]
 				elsif numero==3 then
-					return "se calcula el alto de la pagina en base al del pliego y la cantidad de paginas por pliego verticalmente"
+					return [11,"se calcula el alto de la pagina en base al del pliego y la cantidad de paginas por pliego verticalmente"]
 				elsif numero==4 then
 					return [3,"se toma el alto real de la pagina"]
 				end
@@ -263,10 +263,17 @@ end
 
 class Pregunta
   attr_accessor :ok, :yn, :mensaje
+  attr_reader :ide
   def initialize(mensaje)
     @mensaje=mensaje
   end
   def metodo()
+  end
+  def ==(question)
+    if question==nil then
+      return false
+    end
+    return @ide==question.ide
   end
 end
 #
@@ -301,6 +308,11 @@ class PreguntaEscalado < Pregunta
   def initialize(tipo)
     @mensaje="en duro"
     @tipo=tipo
+    if @tipo=="horizontal" then
+      @ide=1
+    elsif @tipo=="vertical" then
+      @ide=2
+    end
   end
   def metodo(yn)
     @yn=yn

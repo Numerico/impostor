@@ -1,5 +1,4 @@
 #GEMAS
-#por qué tengo que requerir todo esto?
 require 'rubygems'
 require 'uuidtools'
 require 'fileutils'
@@ -18,6 +17,6 @@ work="/tmp"
 check=Metodos.checksCompile($requerimientos,work)
 if check.instance_of? Clases::Mensaje then
   puts check.mensaje
-  exit#TODO raise
+  exit
 end
 
