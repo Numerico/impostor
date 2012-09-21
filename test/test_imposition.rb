@@ -1,11 +1,11 @@
 #
 require 'test/unit'
 require 'imposition'
+#
+$entrada=File.dirname(__FILE__)+"/assets/test.pdf"
+$salida=$dir+"/test.pdf"
 
-#con qué archivos correr la prueba sí se recibe TODO
-$entrada="/home/roberto/Documentos/e-dit/rails/active_record_querying_archivos/latex/active_record_queryingCuarto.pdf"
-$salida="/home/roberto/Documentos/test.pdf"
-
+#TODO YAML
 
 class Resultado
   attr_reader :yn, :msg
@@ -59,6 +59,7 @@ class TestImpostor < Test::Unit::TestCase
         return Resultado.new(false,"hay un error")
       end
     else
+      
       return Resultado.new(false,"no se esperan preguntas")
     end
   end
@@ -74,7 +75,6 @@ class TestImpostor < Test::Unit::TestCase
   
   #nUp
   def test_nUp
-    #TODO YAML
     w_=nuevo(0.point,"point")
     h_=nuevo(0.point,"point")
     wP_=nuevo(0.point,"point")
@@ -92,30 +92,37 @@ class TestImpostor < Test::Unit::TestCase
     esperados.push(Clases::Mensaje.new(4))#1, "vertical", 2
     esperados.push(Clases::Mensaje.new(5))#1, "paginas", 3
     esperados.push(Clases::Mensaje.new(6))#1, "paginas", 2
-    #esperados.push(Clases::Mensaje.new(1, "El pdf tiene 30 paginas, que impuestas en 3x3 son 36 paginas"))#TODO
-    esperados.push(Clases::Mensaje.new(7))#MensajeLadoLado
+    #esperados.push(Clases::Mensaje.new(7))#MensajeLadoLado
     esperados.push(Clases::Mensaje.new(8))#MensajeVars
     esperados.push(Clases::Mensaje.new(9))#MensajeTiempo
+    esperados.push(Clases::Mensaje.new(10))#MensajeMultiplo
     #
     resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados)
     assert(resultado.yn,resultado.msg)
   end
   
-  #def test_nUpUnidad
-    #TODO YAML
-    #w_=nuevo(0.point,"point")
-    #h_=nuevo(0.point,"point")
-    #wP_=nuevo(279.mm,"mm")
-    #hP_=nuevo(216.mm,"mm")
-    #nX=nuevo(2,nil)
-    #nY=nuevo(1,nil)
-    #nPaginas=""
-    #nPliegos=""
-    #cuadernillos=false
-    
-    #esperados=[]
-    #resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados)
-    #assert(resultado.yn,resultado.msg)
-  #end
+  #nUp con unidades
+  def test_nUpUnidad
+    w_=nuevo(0.point,"point")
+    h_=nuevo(0.point,"point")
+    wP_=nuevo(279.mm,"mm")
+    hP_=nuevo(216.mm,"mm")
+    nX=nuevo(2,nil)
+    nY=nuevo(1,nil)
+    nPaginas=""
+    nPliegos=""
+    cuadernillos=false
+    #
+    esperados=[]
+    pregunta1=Clases::PreguntaEscalado.new("horizontalmente")
+    pregunta1.metodo(true)
+    esperados.push(pregunta1)
+    pregunta2=Clases::PreguntaEscalado.new("verticalmente")
+    pregunta2.metodo(true)
+    esperados.push(pregunta2)
+    #
+    resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados)
+    assert(resultado.yn,resultado.msg)
+  end
   
 end

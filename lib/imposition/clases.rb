@@ -253,6 +253,13 @@ class MensajeVars < Mensaje
     end
   end
 end
+#
+class MensajeMultiplo < Mensaje
+  def initialize(level, mensaje)
+    @id=10
+    super(level,mensaje)
+  end
+end
 
 class Pregunta
   attr_accessor :ok, :yn, :mensaje

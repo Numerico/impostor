@@ -690,7 +690,7 @@ def self.validacion(impostor, preguntas)
   #nPaginas multiplo de nX*nY
   if impostor.nX*impostor.nY!=0 and impostor.nPaginas%(impostor.nX*impostor.nY)!=0 then
     impostor.nPaginas=(impostor.nPaginas/(impostor.nX*impostor.nY)+1)*(impostor.nX*impostor.nY)
-    mensajes.push(Clases::Mensaje.new(1, "El pdf tiene #{impostor.nPaginasReal} paginas, que impuestas en #{impostor.nX}x#{impostor.nY} son #{impostor.nPaginas} paginas"))
+    mensajes.push(Clases::MensajeMultiplo.new(1, "El pdf tiene #{impostor.nPaginasReal} paginas, que impuestas en #{impostor.nX}x#{impostor.nY} son #{impostor.nPaginas} paginas"))
   end
   #TODO ¿ROTAR? si se gasta menos espacio por pliego o en total da menos pliegos
   return Clases::RespuestaImpostor.new(preguntas,mensajes)
