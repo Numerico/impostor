@@ -116,6 +116,11 @@ class TestImpostor < Test::Unit::TestCase
     #
     resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,nil,nil)
     assert(resultado.yn,resultado.msg)
+  ensure
+    #limpio todo, aunque se caiga
+    if $dir!=nil then
+      `rm -r #{$dir}`
+    end
   end
   
   #nUp con unidades
@@ -147,6 +152,11 @@ class TestImpostor < Test::Unit::TestCase
     #
     resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,nil,respuestas)
     assert(resultado.yn,resultado.msg)
+  ensure
+    #limpio todo, aunque se caiga
+    if $dir!=nil then
+      `rm -r #{$dir}`
+    end
   end
   
   #foldable
@@ -181,5 +191,10 @@ class TestImpostor < Test::Unit::TestCase
     #
     resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,nil,respuestas)
     assert(resultado.yn,resultado.msg)
+  ensure
+    #limpio todo, aunque se caiga
+    if $dir!=nil then
+      `rm -r #{$dir}`
+    end
   end
 end
