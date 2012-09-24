@@ -96,7 +96,7 @@ end
 #
 entrada=ARGV.shift
 $salida=ARGV.shift
-check=Metodos.checksRun(entrada,$salida)
+check=Metodos.checksRun()
 if check.instance_of? Clases::Mensaje then
   puts check.mensaje
   exit

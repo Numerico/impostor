@@ -12,15 +12,15 @@ def funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas)
     end
     retorno.mensajes.push(imponerStack(impostor, $temp))
     #lo devuelvo
-    if $salida != nil then
-      entrada=$salida
+    if $salida == nil then
+      $salida=$entrada
     end
-    FileUtils.mv($dir+"/"+"cutStack.pdf", entrada)
+    FileUtils.mv($dir+"/"+"cutStack.pdf", $salida)
   end
   return retorno
 end
 
-def checksCompile(requerimientos, work)
+def checksCompile()
   #paquetes
   $requerimientos.each do |k,v|
     `which #{v}`
@@ -30,42 +30,42 @@ def checksCompile(requerimientos, work)
   end
   #archivos
   #probamos que exista el directorio de trabajo
-  if File.exists?(work) then
+  if File.exists?($work) then
     #y que sea escribible
-    if File.writable?(work) and File.writable_real?(work) then
-      work+="/impostor"
-      if !File.exists?(work) then
-        Dir.mkdir(work)
+    if File.writable?($work) and File.writable_real?($work) then
+      $work+="/impostor"
+      if !File.exists?($work) then
+        Dir.mkdir($work)
       end
       #creo mi directorio
-      $dir=work+"/"+UUIDTools::UUID.random_create
+      $dir=$work+"/"+UUIDTools::UUID.random_create
       Dir.mkdir($dir)
       $codeDir = Dir.pwd
     else
-      return Clases::Mensaje.new(3,"el directorio de trabajo "+work+" no se puede escribir")
+      return Clases::Mensaje.new(3,"el directorio de trabajo "+$work+" no se puede escribir")
     end 
   else
-    return Clases::Mensaje.new(3,"el directorio de trabajo "+work+ " no existe")
+    return Clases::Mensaje.new(3,"el directorio de trabajo "+$work+ " no existe")
   end
 end
 
-def checksRun(entrada, salida)
+def checksRun()
   #la entrada
-  if entrada != nil then
-    if File.file?(entrada) then
-      if File.owned?(entrada) then
+  if $entrada != nil then
+    if File.file?($entrada) then
+      if File.owned?($entrada) then
         busca = /.*(.pdf)/
-        if busca.match(File.basename(entrada)) then
-          $temp=$dir+"/"+File.basename(entrada)#me lo llevo
-          FileUtils.cp(entrada, $temp)
+        if busca.match(File.basename($entrada)) then
+          $temp=$dir+"/"+File.basename($entrada)#me lo llevo
+          FileUtils.cp($entrada, $temp)
         else
-        return Clases::Mensaje.new(3,"el archivo "+entrada+" no es pdf")
+        return Clases::Mensaje.new(3,"el archivo "+$entrada+" no es pdf")
         end
       else
-      return Clases::Mensaje.new(3,"el archivo "+entrada+" no es mío")
+      return Clases::Mensaje.new(3,"el archivo "+$entrada+" no es mío")
       end
     else
-    return Clases::Mensaje.new(3,entrada+" no es un archivo")
+    return Clases::Mensaje.new(3,$entrada+" no es un archivo")
     end
   else
     return Clases::Mensaje.new(3,"no ha especificado archivo a imponer")
@@ -453,7 +453,7 @@ def self.validacion(impostor, preguntas)
     impostor.nX=impostor.nX/2
     impostor.w=impostor.w*2
     impostor.w_["numero"]=impostor.w
-    mensajes.push(Clases::Mensaje.new(1, "como imponemos en cuadernillos, tomamos la mitad de paginas horizontalmente y una pagina del doble de ancho"))
+    mensajes.push(Clases::MensajeBooklets.new(1, "como imponemos en cuadernillos, tomamos la mitad de paginas horizontalmente y una pagina del doble de ancho"))
   end
   #HORIZONTALMENTE
   if impostor.w!=0.point then

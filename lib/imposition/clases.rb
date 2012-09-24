@@ -218,13 +218,14 @@ end
 class MensajeTiempo < Mensaje
   attr_reader :tipo
   def initialize(tipo,tiempo)
-    @id=9#fijo
     @tiempo=tiempo
     @level=1
     if tipo==1 then#booklets
+      @id=14#fijo
       @mensaje="::::::::::::booklets:::::::::::::\n"#blink blink
       @mensaje+="booklets: "
     elsif tipo==2 then
+      @id=9#fijo
       @mensaje="::::::::::::cut&Stack::::::::::::\n"#blink blink
       @mensaje+="cut&Stack: "
     end  
@@ -257,6 +258,13 @@ end
 class MensajeMultiplo < Mensaje
   def initialize(level, mensaje)
     @id=10
+    super(level,mensaje)
+  end
+end
+#TODO DRY!
+class MensajeBooklets < Mensaje
+  def initialize(level,mensaje)
+    @id=13
     super(level,mensaje)
   end
 end

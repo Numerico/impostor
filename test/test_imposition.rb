@@ -48,6 +48,14 @@ class TestImpostor < Test::Unit::TestCase
     return retorno
   end
   #
+  def refresh()
+    $dir=$work+"/"+UUIDTools::UUID.random_create
+    Dir.mkdir($dir)
+    $codeDir = Dir.pwd
+    $salida=$dir+"/test.pdf"
+    $temp=$dir+"/"+File.basename($entrada)#me lo llevo
+    FileUtils.cp($entrada, $temp)
+  end
   #
   def nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,preguntas,respuestas)
     impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas)
@@ -75,7 +83,7 @@ class TestImpostor < Test::Unit::TestCase
   
   #general
   def test_check()
-    check=Metodos.checksRun($entrada,$salida)
+    check=Metodos.checksRun()
     if check.instance_of? Clases::Mensaje then
       msg=check.mensaje
     end
@@ -84,6 +92,7 @@ class TestImpostor < Test::Unit::TestCase
   
   #nUp
   def test_nUp
+    #
     w_=nuevo(0,"point")
     h_=nuevo(0,"point")
     wP_=nuevo(0,"point")
@@ -111,6 +120,8 @@ class TestImpostor < Test::Unit::TestCase
   
   #nUp con unidades
   def test_nUpUnidad
+    refresh()
+    #
     w_=nuevo(0,"point")
     h_=nuevo(0,"point")
     wP_=nuevo(279,"mm")
@@ -138,4 +149,37 @@ class TestImpostor < Test::Unit::TestCase
     assert(resultado.yn,resultado.msg)
   end
   
+  #foldable
+  def test_nUpBooklets
+    refresh()
+    #
+    w_=nuevo(0,"point")
+    h_=nuevo(0,"point")
+    wP_=nuevo(0,"point")
+    hP_=nuevo(0,"point")
+    nX=nuevo(2,nil)
+    nY=nuevo(1,nil)
+    nPaginas=""
+    nPliegos=""
+    cuadernillos=true
+    #
+    esperados=[]
+    esperados.push(Clases::Mensaje.new(13))#PreguntacXC
+    esperados.push(Clases::Mensaje.new(1))
+    esperados.push(Clases::Mensaje.new(2))
+    esperados.push(Clases::Mensaje.new(3))
+    esperados.push(Clases::Mensaje.new(4))
+    esperados.push(Clases::Mensaje.new(5))
+    esperados.push(Clases::Mensaje.new(7))
+    esperados.push(Clases::Mensaje.new(6))
+    esperados.push(Clases::Mensaje.new(8))
+    esperados.push(Clases::Mensaje.new(9))
+    esperados.push(Clases::Mensaje.new(14))#MensajeTiempo Booklets
+    #
+    respuestas=[]
+    respuestas.push([Clases::PreguntaCXC.new(),nuevo(0,nil)])
+    #
+    resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,nil,respuestas)
+    assert(resultado.yn,resultado.msg)
+  end
 end
