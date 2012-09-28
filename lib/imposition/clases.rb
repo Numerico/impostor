@@ -272,8 +272,12 @@ end
 class Pregunta
   attr_accessor :ok, :yn, :mensaje
   attr_reader :ide
-  def initialize(mensaje)
-    @mensaje=mensaje
+  def initialize(arg)
+    if arg.instance_of? String then
+      @mensaje=arg
+    else
+      @ide=arg
+    end
   end
   def metodo()
   end
@@ -313,14 +317,16 @@ end
 #
 class PreguntaEscalado < Pregunta
   attr_accessor :tipo
-  def initialize(tipo)
-    @mensaje="en duro"
+  def initialize(tipo)    
     @tipo=tipo
-    if @tipo=="horizontal" then
+    if @tipo=="horizontalmente" then
       @ide=1
-    elsif @tipo=="vertical" then
+      @mensaje="no especifico ancho de pagina pero si ancho de pliego y numero de paginas por pliego "+tipo
+    elsif @tipo=="verticalmente" then
       @ide=2
+      @mensaje="no especifico alto de pagina pero si alto de pliego y numero de paginas por pliego "+tipo
     end
+    @mensaje+=" ¿escalar "+tipo+"?"
   end
   def metodo(yn)
     @yn=yn
