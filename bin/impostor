@@ -94,7 +94,7 @@ end
 ########
 #CONSOLA
 #
-entrada=ARGV.shift
+$entrada=ARGV.shift
 $salida=ARGV.shift
 check=Metodos.checksRun()
 if check.instance_of? Clases::Mensaje then

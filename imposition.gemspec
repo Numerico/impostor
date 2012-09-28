@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'imposition'
-  s.version     = '0.8.9'
+  s.version     = '0.9.0'
   s.date        = '2012-08-16'
   s.summary     = "editorial imposition script"
   s.description = "nUp & booklets"
