@@ -1,34 +1,33 @@
 module Metodos
 
 #WORK
-def funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas)
+def funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,temp,entrada,salida,dir)
   impostor=Clases::Imposicion.new(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos)
-  pdfinfo(impostor, $temp)
+  pdfinfo(impostor,temp,dir)
   retorno=validacion(impostor, preguntas)
   if retorno.preguntasOk then
     retorno.mensajes.push(Clases::MensajeVars.new(1,impostor.to_s))
     if impostor.cuadernillos then
-      retorno.mensajes.push(imponerBooklet(impostor, $temp))
+      retorno.mensajes.push(imponerBooklet(impostor,temp,dir))
     end
-    retorno.mensajes.push(imponerStack(impostor, $temp))
+    retorno.mensajes.push(imponerStack(impostor,temp,dir))
     #lo devuelvo
-    if $salida == nil then
-      $salida=$entrada
+    if salida == nil then
+      salida=entrada
     end
-    FileUtils.mv($dir+"/"+"cutStack.pdf", $salida)
+    FileUtils.mv(dir+"/"+"cutStack.pdf", salida)
   end
   return retorno
 end
 
 def checksCompile()
-  #paquetes
+  #paquetes necesarios
   $requerimientos.each do |k,v|
     `which #{v}`
     if !$?.success? then
       return Clases::Mensaje.new(3,"#{v} no es ejecutable")
     end  
   end
-  #archivos
   #probamos que exista el directorio de trabajo
   if File.exists?($work) then
     #y que sea escribible
@@ -37,10 +36,6 @@ def checksCompile()
       if !File.exists?($work) then
         Dir.mkdir($work)
       end
-      #creo mi directorio
-      $dir=$work+"/"+UUIDTools::UUID.random_create
-      Dir.mkdir($dir)
-      $codeDir = Dir.pwd
     else
       return Clases::Mensaje.new(3,"el directorio de trabajo "+$work+" no se puede escribir")
     end 
@@ -49,33 +44,30 @@ def checksCompile()
   end
 end
 
-def checksRun()
+def checksRun(entrada,salida,dir)
   #la entrada
-  if $entrada != nil then
-    if File.file?($entrada) then
-      if File.owned?($entrada) then
+  if entrada != nil then
+    if File.file?(entrada) then
+      if File.owned?(entrada) then
         busca = /.*(.pdf)/
-        if busca.match(File.basename($entrada)) then
-          $temp=$dir+"/"+File.basename($entrada)#me lo llevo
-          FileUtils.cp($entrada, $temp)
-        else
-        return Clases::Mensaje.new(3,"el archivo "+$entrada+" no es pdf")
+        if !busca.match(File.basename(entrada)) then
+          return Clases::Mensaje.new(3,"el archivo "+entrada+" no es pdf")
         end
       else
-      return Clases::Mensaje.new(3,"el archivo "+$entrada+" no es mío")
+      return Clases::Mensaje.new(3,"el archivo "+entrada+" no es mío")
       end
     else
-    return Clases::Mensaje.new(3,$entrada+" no es un archivo")
+    return Clases::Mensaje.new(3,entrada+" no es un archivo")
     end
   else
     return Clases::Mensaje.new(3,"no ha especificado archivo a imponer")
   end
   #y la salida, de haberla
-  if $salida!=nil then
+  if salida!=nil then
   #if File.exists?(salida) then #TODO crearla si es escribible
-    salidaDir=File.dirname($salida)
+    salidaDir=File.dirname(salida)
     if !File.writable?(salidaDir) or !File.writable_real?(salidaDir) then
-      return Clases::Mensaje.new(3,"el directorio de salida "+$salida+" no se puede escribir")
+      return Clases::Mensaje.new(3,"el directorio de salida "+salida+" no se puede escribir")
     end 
   #else
   # puts salida+ " no existe"
@@ -95,11 +87,20 @@ def input2alchemist(unidad)
   end
 end
 
-#########
-module_function :funcionar, :checksCompile, :checksRun, :input2alchemist
+#permite globales porque se encapsula logica de test y ejecutable
+def refresh
+  $dir=$work+"/"+UUIDTools::UUID.random_create
+  Dir.mkdir($dir)
+  $codeDir = Dir.pwd
+  $temp=$dir+"/"+File.basename($entrada)#me lo llevo
+  FileUtils.cp($entrada, $temp)
+end
 
-def self.pdfinfo(impostor, temp)
-  Dir.chdir($dir)
+#########
+module_function :funcionar, :checksCompile, :checksRun, :input2alchemist, :refresh
+
+def self.pdfinfo(impostor, temp, dir)
+  Dir.chdir(dir)
   pdfinfo = `#{$requerimientos["pdfinfo"]} -box #{temp}`
   impostor.nPaginasReal=paginasdelpdf(pdfinfo)
   impostor.size=Metodos.pagesize(pdfinfo)
@@ -141,7 +142,7 @@ def self.pagesize(pdfinfo)
   return retorno
 end
 
-def self.imponerStack(impostor, temp)
+def self.imponerStack(impostor,temp,dir)
   
   wPC=pdflatexUnit(impostor.wP, impostor.wP_["unidad"])
   impostor.wP=wPC[0]
@@ -165,7 +166,7 @@ def self.imponerStack(impostor, temp)
   end
   cS=cS.join(",")
 
-  cutted=$dir+"/"+"cutStack.tex"
+  cutted=dir+"/"+"cutStack.tex"
   File.open(cutted, 'w') do |cutStack|
     cutStack.puts "\\documentclass{report}"
     cutStack.puts "\\usepackage{pdfpages}"
@@ -188,7 +189,7 @@ def self.imponerStack(impostor, temp)
   end
   
   #LaTeX
-  Dir.chdir($dir)
+  Dir.chdir(dir)
   tIni=Time.now
   pdflatex=`#{$requerimientos["pdflatex"]} #{cutted}`
   tFin=Time.now
@@ -201,7 +202,7 @@ end
 
 #TODO 1 sola vez pdflatex?
 
-def self.imponerBooklet(impostor, archivo)
+def self.imponerBooklet(impostor,archivo,dir)
   #unidades latex
   wC=pdflatexUnit(impostor.w_["numero"], impostor.w_["unidad"])
   impostor.w=wC[0]
@@ -211,7 +212,7 @@ def self.imponerBooklet(impostor, archivo)
   impostor.h_["unidad"]=hC[1]
 
   wDummy=impostor.w_["numero"].to_f#bug alchemist
-  pierpa=$dir+"/"+"booKlet.tex"
+  pierpa=dir+"/"+"booKlet.tex"
   File.open(pierpa, 'w') do |booklet|
     booklet.puts "\\documentclass{report}"
     booklet.puts "\\usepackage{pdfpages}"
@@ -233,14 +234,14 @@ def self.imponerBooklet(impostor, archivo)
     booklet.puts "\\end{document}"
   end
   #LaTeX
-  Dir.chdir($dir)
+  Dir.chdir(dir)
   tIni=Time.now
   pdflatex=`#{$requerimientos["pdflatex"]} #{pierpa}`
   tFin=Time.now
   t=tFin-tIni
   Dir.chdir($codeDir)
   #lo devuelvo
-  FileUtils.mv($dir+"/"+"booKlet.pdf", archivo)
+  FileUtils.mv(dir+"/"+"booKlet.pdf", archivo)
   #retorno
   return Clases::MensajeTiempo.new(1,t)
 end

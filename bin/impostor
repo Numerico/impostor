@@ -96,7 +96,10 @@ end
 #
 $entrada=ARGV.shift
 $salida=ARGV.shift
-check=Metodos.checksRun()
+#
+Metodos.refresh()
+#
+check=Metodos.checksRun($entrada,$salida,$dir)
 if check.instance_of? Clases::Mensaje then
   puts check.mensaje
   exit
@@ -115,7 +118,7 @@ nPliegos_=input("nPliegos:")
 cuadernillos = enBooklets()
 #
 def recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos, preguntas)
-  impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas)
+  impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,$temp,$entrada,$salida,$dir)
   if impostor.preguntasOk then
     if impostor.valido then
       puts "::::::::::::mensajes:::::::::::::"#blink blink

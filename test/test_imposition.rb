@@ -3,7 +3,7 @@ require 'test/unit'
 require 'imposition'
 #
 $entrada=File.dirname(__FILE__)+"/assets/test.pdf"
-$salida=$dir+"/test.pdf"
+$salida="/home/roberto/test.pdf"
 
 #TODO YAML
 
@@ -48,17 +48,8 @@ class TestImpostor < Test::Unit::TestCase
     return retorno
   end
   #
-  def refresh()
-    $dir=$work+"/"+UUIDTools::UUID.random_create
-    Dir.mkdir($dir)
-    $codeDir = Dir.pwd
-    $salida=$dir+"/test.pdf"
-    $temp=$dir+"/"+File.basename($entrada)#me lo llevo
-    FileUtils.cp($entrada, $temp)
-  end
-  #
   def nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,preguntas,respuestas)
-    impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas)
+    impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,$temp,$entrada,$salida,$dir)
     if impostor.preguntasOk then
       if impostor.valido then
         return siySoloSi(impostor.mensajes,esperados)
@@ -83,15 +74,23 @@ class TestImpostor < Test::Unit::TestCase
   
   #general
   def test_check()
-    check=Metodos.checksRun()
+    Metodos.refresh()
+    #
+    check=Metodos.checksRun($entrada,$salida,$dir)
     if check.instance_of? Clases::Mensaje then
       msg=check.mensaje
     end
     assert((check.instance_of? Clases::Mensaje)!=true, msg)
+  ensure
+    #limpio todo, aunque se caiga
+    if $dir!=nil then
+      `rm -r #{$dir}`
+    end
   end
   
   #nUp
   def test_nUp
+    Metodos.refresh()
     #
     w_=nuevo(0,"point")
     h_=nuevo(0,"point")
@@ -125,7 +124,7 @@ class TestImpostor < Test::Unit::TestCase
   
   #nUp con unidades
   def test_nUpUnidad
-    refresh()
+    Metodos.refresh()
     #
     w_=nuevo(0,"point")
     h_=nuevo(0,"point")
@@ -161,7 +160,7 @@ class TestImpostor < Test::Unit::TestCase
   
   #foldable
   def test_nUpBooklets
-    refresh()
+    Metodos.refresh()
     #
     w_=nuevo(0,"point")
     h_=nuevo(0,"point")
