@@ -49,7 +49,7 @@ class TestImpostor < Test::Unit::TestCase
   end
   #
   def nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,preguntas,respuestas)
-    impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,$temp,$entrada,$salida,$dir)
+    impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,$temp,$entrada,$salida)
     if impostor.preguntasOk then
       if impostor.valido then
         return siySoloSi(impostor.mensajes,esperados)
@@ -76,15 +76,15 @@ class TestImpostor < Test::Unit::TestCase
   def test_check()
     Metodos.refresh()
     #
-    check=Metodos.checksRun($entrada,$salida,$dir)
+    check=Metodos.checksRun($entrada,$salida)
     if check.instance_of? Clases::Mensaje then
       msg=check.mensaje
     end
     assert((check.instance_of? Clases::Mensaje)!=true, msg)
   ensure
     #limpio todo, aunque se caiga
-    if $dir!=nil then
-      `rm -r #{$dir}`
+    if File.dirname($temp)!=nil then
+      `rm -r #{File.dirname($temp)}`
     end
   end
   
@@ -117,8 +117,8 @@ class TestImpostor < Test::Unit::TestCase
     assert(resultado.yn,resultado.msg)
   ensure
     #limpio todo, aunque se caiga
-    if $dir!=nil then
-      `rm -r #{$dir}`
+    if File.dirname($temp)!=nil then
+      `rm -r #{File.dirname($temp)}`
     end
   end
   
@@ -153,8 +153,8 @@ class TestImpostor < Test::Unit::TestCase
     assert(resultado.yn,resultado.msg)
   ensure
     #limpio todo, aunque se caiga
-    if $dir!=nil then
-      `rm -r #{$dir}`
+    if File.dirname($temp)!=nil then
+      `rm -r #{File.dirname($temp)}`
     end
   end
   
@@ -192,8 +192,8 @@ class TestImpostor < Test::Unit::TestCase
     assert(resultado.yn,resultado.msg)
   ensure
     #limpio todo, aunque se caiga
-    if $dir!=nil then
-      `rm -r #{$dir}`
+    if File.dirname($temp)!=nil then
+      `rm -r #{File.dirname($temp)}`
     end
   end
 end

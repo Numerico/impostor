@@ -99,7 +99,7 @@ $salida=ARGV.shift
 #
 Metodos.refresh()
 #
-check=Metodos.checksRun($entrada,$salida,$dir)
+check=Metodos.checksRun($entrada,$salida)
 if check.instance_of? Clases::Mensaje then
   puts check.mensaje
   exit
@@ -118,7 +118,7 @@ nPliegos_=input("nPliegos:")
 cuadernillos = enBooklets()
 #
 def recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos, preguntas)
-  impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,$temp,$entrada,$salida,$dir)
+  impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,$temp,$entrada,$salida)
   if impostor.preguntasOk then
     if impostor.valido then
       puts "::::::::::::mensajes:::::::::::::"#blink blink
@@ -166,8 +166,8 @@ recursivo(w_,h_,wP_,hP_,nX_,nY_,nPaginas_,nPliegos_,cuadernillos, nil)
 puts "::::::::::::Game Over::::::::::::"#blink blink
 ensure
   #limpio todo, aunque se caiga
-  if $dir!=nil then
-    `rm -r #{$dir}`
+  if File.dirname($temp)!=nil then
+    `rm -r #{File.dirname($temp)}`
   end
 end
 #GAME OVER

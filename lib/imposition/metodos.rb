@@ -1,21 +1,21 @@
 module Metodos
 
 #WORK
-def funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,temp,entrada,salida,dir)
+def funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,temp,entrada,salida)
   impostor=Clases::Imposicion.new(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos)
-  pdfinfo(impostor,temp,dir)
+  pdfinfo(impostor,temp)
   retorno=validacion(impostor, preguntas)
   if retorno.preguntasOk then
     retorno.mensajes.push(Clases::MensajeVars.new(1,impostor.to_s))
     if impostor.cuadernillos then
-      retorno.mensajes.push(imponerBooklet(impostor,temp,dir))
+      retorno.mensajes.push(imponerBooklet(impostor,temp))
     end
-    retorno.mensajes.push(imponerStack(impostor,temp,dir))
+    retorno.mensajes.push(imponerStack(impostor,temp))
     #lo devuelvo
     if salida == nil then
       salida=entrada
     end
-    FileUtils.mv(dir+"/"+"cutStack.pdf", salida)
+    FileUtils.mv(File.dirname(temp)+"/"+"cutStack.pdf", salida)
   end
   return retorno
 end
@@ -44,7 +44,7 @@ def checksCompile()
   end
 end
 
-def checksRun(entrada,salida,dir)
+def checksRun(entrada,salida)
   #la entrada
   if entrada != nil then
     if File.file?(entrada) then
@@ -89,18 +89,18 @@ end
 
 #permite globales porque se encapsula logica de test y ejecutable
 def refresh
-  $dir=$work+"/"+UUIDTools::UUID.random_create
-  Dir.mkdir($dir)
+  dir=$work+"/"+UUIDTools::UUID.random_create
+  Dir.mkdir(dir)
   $codeDir = Dir.pwd
-  $temp=$dir+"/"+File.basename($entrada)#me lo llevo
+  $temp=dir+"/"+File.basename($entrada)#me lo llevo
   FileUtils.cp($entrada, $temp)
 end
 
 #########
 module_function :funcionar, :checksCompile, :checksRun, :input2alchemist, :refresh
 
-def self.pdfinfo(impostor, temp, dir)
-  Dir.chdir(dir)
+def self.pdfinfo(impostor, temp)
+  Dir.chdir(File.dirname(temp))
   pdfinfo = `#{$requerimientos["pdfinfo"]} -box #{temp}`
   impostor.nPaginasReal=paginasdelpdf(pdfinfo)
   impostor.size=Metodos.pagesize(pdfinfo)
@@ -142,7 +142,7 @@ def self.pagesize(pdfinfo)
   return retorno
 end
 
-def self.imponerStack(impostor,temp,dir)
+def self.imponerStack(impostor,temp)
   
   wPC=pdflatexUnit(impostor.wP, impostor.wP_["unidad"])
   impostor.wP=wPC[0]
@@ -166,7 +166,7 @@ def self.imponerStack(impostor,temp,dir)
   end
   cS=cS.join(",")
 
-  cutted=dir+"/"+"cutStack.tex"
+  cutted=File.dirname(temp)+"/"+"cutStack.tex"
   File.open(cutted, 'w') do |cutStack|
     cutStack.puts "\\documentclass{report}"
     cutStack.puts "\\usepackage{pdfpages}"
@@ -189,7 +189,7 @@ def self.imponerStack(impostor,temp,dir)
   end
   
   #LaTeX
-  Dir.chdir(dir)
+  Dir.chdir(File.dirname(temp))
   tIni=Time.now
   pdflatex=`#{$requerimientos["pdflatex"]} #{cutted}`
   tFin=Time.now
@@ -202,7 +202,7 @@ end
 
 #TODO 1 sola vez pdflatex?
 
-def self.imponerBooklet(impostor,archivo,dir)
+def self.imponerBooklet(impostor,temp)
   #unidades latex
   wC=pdflatexUnit(impostor.w_["numero"], impostor.w_["unidad"])
   impostor.w=wC[0]
@@ -212,7 +212,7 @@ def self.imponerBooklet(impostor,archivo,dir)
   impostor.h_["unidad"]=hC[1]
 
   wDummy=impostor.w_["numero"].to_f#bug alchemist
-  pierpa=dir+"/"+"booKlet.tex"
+  pierpa=File.dirname(temp)+"/"+"booKlet.tex"
   File.open(pierpa, 'w') do |booklet|
     booklet.puts "\\documentclass{report}"
     booklet.puts "\\usepackage{pdfpages}"
@@ -230,18 +230,18 @@ def self.imponerBooklet(impostor,archivo,dir)
     booklet.puts "marginpar=0mm"
     booklet.puts "}"
     booklet.puts "\\begin{document}"
-    booklet.puts "\\includepdf[pages={#{impostor.bookletz.join(",")}},nup=2x1,noautoscale,width=#{wDummy/2}#{impostor.w_["unidad"]}, height=#{impostor.h_["numero"]}#{impostor.h_["unidad"]}]{#{archivo}}"
+    booklet.puts "\\includepdf[pages={#{impostor.bookletz.join(",")}},nup=2x1,noautoscale,width=#{wDummy/2}#{impostor.w_["unidad"]}, height=#{impostor.h_["numero"]}#{impostor.h_["unidad"]}]{#{temp}}"
     booklet.puts "\\end{document}"
   end
   #LaTeX
-  Dir.chdir(dir)
+  Dir.chdir(File.dirname(temp))
   tIni=Time.now
   pdflatex=`#{$requerimientos["pdflatex"]} #{pierpa}`
   tFin=Time.now
   t=tFin-tIni
   Dir.chdir($codeDir)
   #lo devuelvo
-  FileUtils.mv(dir+"/"+"booKlet.pdf", archivo)
+  FileUtils.mv(File.dirname(temp)+"/"+"booKlet.pdf", temp)
   #retorno
   return Clases::MensajeTiempo.new(1,t)
 end
