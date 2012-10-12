@@ -105,7 +105,7 @@ if check.instance_of? Clases::Mensaje then
   exit
 end
 #
-puts "::::::::::::impostor::::::::::::"#blink blink
+puts "::::::::::impostor 9.2:::::::::::"#blink blink
 #
 w_=input("w:")
 h_=input("h:")
@@ -118,7 +118,7 @@ nPliegos_=input("nPliegos:")
 cuadernillos = enBooklets()
 #
 def recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos, preguntas)
-  impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,$temp,$entrada,$salida)
+  impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,$temp)
   if impostor.preguntasOk then
     if impostor.valido then
       puts "::::::::::::mensajes:::::::::::::"#blink blink
@@ -162,6 +162,11 @@ def recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos, preguntas)
   end
 end
 recursivo(w_,h_,wP_,hP_,nX_,nY_,nPaginas_,nPliegos_,cuadernillos, nil)
+#lo devuelvo
+if $salida == nil then
+  $salida=$entrada
+end
+FileUtils.mv(File.dirname($temp)+"/"+"cutStack.pdf", $salida)
 #
 puts "::::::::::::Game Over::::::::::::"#blink blink
 ensure

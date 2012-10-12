@@ -49,7 +49,7 @@ class TestImpostor < Test::Unit::TestCase
   end
   #
   def nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,preguntas,respuestas)
-    impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,$temp,$entrada,$salida)
+    impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,$temp)
     if impostor.preguntasOk then
       if impostor.valido then
         return siySoloSi(impostor.mensajes,esperados)

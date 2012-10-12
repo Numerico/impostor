@@ -1,7 +1,7 @@
 module Metodos
 
 #WORK
-def funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,temp,entrada,salida)
+def funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,temp)
   impostor=Clases::Imposicion.new(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos)
   pdfinfo(impostor,temp)
   retorno=validacion(impostor, preguntas)
@@ -11,11 +11,6 @@ def funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,temp,
       retorno.mensajes.push(imponerBooklet(impostor,temp))
     end
     retorno.mensajes.push(imponerStack(impostor,temp))
-    #lo devuelvo
-    if salida == nil then
-      salida=entrada
-    end
-    FileUtils.mv(File.dirname(temp)+"/"+"cutStack.pdf", salida)
   end
   return retorno
 end
