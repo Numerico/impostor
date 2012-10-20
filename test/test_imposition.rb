@@ -41,13 +41,6 @@ class TestImpostor < Test::Unit::TestCase
     return Resultado.new(true,nil)
   end
   #
-  def nuevo(valor,unidad)
-    retorno=Hash.new
-    retorno["numero"]=valor
-    retorno["unidad"]=unidad
-    return retorno
-  end
-  #
   def nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,preguntas,respuestas)
     impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,$temp)
     if impostor.preguntasOk then
@@ -92,12 +85,12 @@ class TestImpostor < Test::Unit::TestCase
   def test_nUp
     Metodos.refresh()
     #
-    w_=nuevo(0,"point")
-    h_=nuevo(0,"point")
-    wP_=nuevo(0,"point")
-    hP_=nuevo(0,"point")
-    nX=nuevo(3,nil)
-    nY=nuevo(3,nil)
+    w_=Metodos.nuevo(0,"point")
+    h_=Metodos.nuevo(0,"point")
+    wP_=Metodos.nuevo(0,"point")
+    hP_=Metodos.nuevo(0,"point")
+    nX=Metodos.nuevo(3,nil)
+    nY=Metodos.nuevo(3,nil)
     nPaginas=""
     nPliegos=""
     cuadernillos=false
@@ -126,12 +119,12 @@ class TestImpostor < Test::Unit::TestCase
   def test_nUpUnidad
     Metodos.refresh()
     #
-    w_=nuevo(0,"point")
-    h_=nuevo(0,"point")
-    wP_=nuevo(279,"mm")
-    hP_=nuevo(216,"mm")
-    nX=nuevo(2,nil)
-    nY=nuevo(1,nil)
+    w_=Metodos.nuevo(0,"point")
+    h_=Metodos.nuevo(0,"point")
+    wP_=Metodos.nuevo(279,"mm")
+    hP_=Metodos.nuevo(216,"mm")
+    nX=Metodos.nuevo(2,nil)
+    nY=Metodos.nuevo(1,nil)
     nPaginas=""
     nPliegos=""
     cuadernillos=false
@@ -162,12 +155,12 @@ class TestImpostor < Test::Unit::TestCase
   def test_nUpBooklets
     Metodos.refresh()
     #
-    w_=nuevo(0,"point")
-    h_=nuevo(0,"point")
-    wP_=nuevo(0,"point")
-    hP_=nuevo(0,"point")
-    nX=nuevo(2,nil)
-    nY=nuevo(1,nil)
+    w_=Metodos.nuevo(0,"point")
+    h_=Metodos.nuevo(0,"point")
+    wP_=Metodos.nuevo(0,"point")
+    hP_=Metodos.nuevo(0,"point")
+    nX=Metodos.nuevo(2,nil)
+    nY=Metodos.nuevo(1,nil)
     nPaginas=""
     nPliegos=""
     cuadernillos=true
@@ -186,7 +179,7 @@ class TestImpostor < Test::Unit::TestCase
     esperados.push(Clases::Mensaje.new(14))#MensajeTiempo Booklets
     #
     respuestas=[]
-    respuestas.push([Clases::PreguntaCXC.new(),nuevo(0,nil)])
+    respuestas.push([Clases::PreguntaCXC.new(),Metodos.nuevo(0,nil)])
     #
     resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,nil,respuestas)
     assert(resultado.yn,resultado.msg)

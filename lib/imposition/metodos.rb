@@ -91,8 +91,16 @@ def refresh
   FileUtils.cp($entrada, $temp)
 end
 
+#forma hash de variable para impostor
+def nuevo(valor,unidad)
+  retorno=Hash.new
+  retorno["numero"]=valor ||= 0
+  retorno["unidad"]=unidad
+  return retorno
+end
+
 #########
-module_function :funcionar, :checksCompile, :checksRun, :input2alchemist, :refresh
+module_function :funcionar, :checksCompile, :checksRun, :input2alchemist, :refresh, :nuevo
 
 def self.pdfinfo(impostor, temp)
   Dir.chdir(File.dirname(temp))
