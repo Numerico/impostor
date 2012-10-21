@@ -18,6 +18,7 @@ end
 class TestImpostor < Test::Unit::TestCase
   #funcionales
   def siySoloSi(mensajes, esperados)
+
     if esperados.size<mensajes.size then
       return Resultado.new(false,"hay mas mensajes que los que se espera")
     end
@@ -205,13 +206,15 @@ class TestImpostor < Test::Unit::TestCase
     cuadernillos=false
     #
     esperados=[]
-    esperados.push(Clases::Mensaje.new(3))
+    esperados.push(Clases::Mensaje.new(3))#alto real
+    esperados.push(Clases::Mensaje.new(12))#w calculado
     esperados.push(Clases::Mensaje.new(15))#sobra w* de alto
     esperados.push(Clases::Mensaje.new(5))#todas pdf
     esperados.push(Clases::Mensaje.new(7))#no impares
-    esperados.push(Clases::Mensaje.new(6))#w calculado
+    esperados.push(Clases::Mensaje.new(6))#pliegos
     esperados.push(Clases::Mensaje.new(8))#MensajeVars
     esperados.push(Clases::Mensaje.new(9))#tiempo cut&Stack
+    esperados.push(Clases::Mensaje.new(11))#TODO ESCALA V!
     #
     respuestas=[]
     respuestas.push([Clases::PreguntaEscalado.new("horizontalmente"),true])#id:1
