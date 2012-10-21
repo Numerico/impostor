@@ -209,7 +209,7 @@ class MensajeMedida < Mensaje
 			if level==3 then
 				return "no caben #{args[0]} paginas de #{args[1]["numero"].to_s+args[1]["unidad"]} de alto en un pliego de #{args[2]["numero"].to_s+args[2]["unidad"]}"
 			elsif level==2 then
-				return "sobra #{args[0].to_s+args[1]} de alto"
+				return [15,"sobra #{args[0].to_s+args[1]} de alto"]
 			end
 		end
 	end
@@ -396,4 +396,5 @@ class RespuestaImpostor
 end
 
 end#fin módulo
-
+#proximo
+#16

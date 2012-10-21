@@ -189,4 +189,40 @@ class TestImpostor < Test::Unit::TestCase
       `rm -r #{File.dirname($temp)}`
     end
   end
+  
+  #solo escala horizontalmente
+  def test_cruzado
+    Metodos.refresh()
+    #
+    w_=Metodos.nuevo(0,"point")
+    h_=Metodos.nuevo(0,"point")
+    wP_=Metodos.nuevo(279,"mm")
+    hP_=Metodos.nuevo(216,"mm")
+    nX=Metodos.nuevo(2,nil)
+    nY=Metodos.nuevo(1,nil)
+    nPaginas=""
+    nPliegos=""
+    cuadernillos=false
+    #
+    esperados=[]
+    esperados.push(Clases::Mensaje.new(3))
+    esperados.push(Clases::Mensaje.new(15))#sobra w* de alto
+    esperados.push(Clases::Mensaje.new(5))#todas pdf
+    esperados.push(Clases::Mensaje.new(7))#no impares
+    esperados.push(Clases::Mensaje.new(6))#w calculado
+    esperados.push(Clases::Mensaje.new(8))#MensajeVars
+    esperados.push(Clases::Mensaje.new(9))#tiempo cut&Stack
+    #
+    respuestas=[]
+    respuestas.push([Clases::PreguntaEscalado.new("horizontalmente"),true])#id:1
+    respuestas.push([Clases::PreguntaEscalado.new("verticalmente"),false])#id:2
+    #
+    resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,nil,respuestas)
+    assert(resultado.yn,resultado.msg)
+  ensure
+    #limpio todo, aunque se caiga
+    if File.dirname($temp)!=nil then
+      `rm -r #{File.dirname($temp)}`
+    end
+  end
 end
