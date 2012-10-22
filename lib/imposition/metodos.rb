@@ -522,8 +522,8 @@ def self.validacion(impostor, preguntas)
     impostor.w=impostor.wReal
     if impostor.cuadernillos then
       impostor.w=impostor.w*2
-      impostor.w_["numero"]=impostor.w
     end
+    impostor.w_["numero"]=impostor.w
     impostor.w_["unidad"]=impostor.size["unidad"]
     mensajes.push(Clases::MensajeDato.new(1, "horizontal", 4))#info
     impostor.wP_["numero"]=impostor.nX*impostor.w.to_f

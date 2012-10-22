@@ -43,6 +43,11 @@ class TestImpostor < Test::Unit::TestCase
   end
   #
   def nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,preguntas,respuestas)
+    #dummies por el clásico bug de alchemist que pasa referencias...
+    w_Dummy=w_.clone
+    h_Dummy=h_.clone
+    wP_Dummy=wP_.clone
+    hP_Dummy=hP_.clone
     impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,$temp)
     if impostor.preguntasOk then
       if impostor.valido then
@@ -61,7 +66,7 @@ class TestImpostor < Test::Unit::TestCase
             end
           end
         end
-        nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,impostor.preguntas,respuestas)
+        nUp(w_Dummy,h_Dummy,wP_Dummy,hP_Dummy,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,impostor.preguntas,respuestas)
       end
     end
   end
@@ -218,6 +223,42 @@ class TestImpostor < Test::Unit::TestCase
     respuestas=[]
     respuestas.push([Clases::PreguntaEscalado.new("horizontalmente"),true])#id:1
     respuestas.push([Clases::PreguntaEscalado.new("verticalmente"),false])#id:2
+    #
+    resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,nil,respuestas)
+    assert(resultado.yn,resultado.msg)
+  ensure
+    #limpio todo, aunque se caiga
+    if File.dirname($temp)!=nil then
+      `rm -r #{File.dirname($temp)}`
+    end
+  end
+  
+  #solo escala horizontalmente, pero tiene que deducirlo
+  def test_cruzado_datos
+    Metodos.refresh()
+    #point
+    w_=Metodos.nuevo(0,"point")
+    h_=Metodos.nuevo(0,"point")
+    wP_=Metodos.nuevo(0,"point")
+    hP_=Metodos.nuevo(216,"mm")
+    nX=Metodos.nuevo(2,nil)
+    nY=Metodos.nuevo(1,nil)
+    nPaginas=""
+    nPliegos=""
+    cuadernillos=false
+    #
+    esperados=[]
+    esperados.push(Clases::Mensaje.new(1))#h real
+    esperados.push(Clases::Mensaje.new(2))#wP calculado
+    esperados.push(Clases::Mensaje.new(11))#h calculado
+    esperados.push(Clases::Mensaje.new(5))#todas pdf
+    esperados.push(Clases::Mensaje.new(7))#no impares
+    esperados.push(Clases::Mensaje.new(6))#pliegos
+    esperados.push(Clases::Mensaje.new(8))#MensajeVars
+    esperados.push(Clases::Mensaje.new(9))#tiempo cut&Stack
+    #
+    respuestas=[]
+    respuestas.push([Clases::PreguntaEscalado.new("verticalmente"),true])#id:2
     #
     resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,nil,respuestas)
     assert(resultado.yn,resultado.msg)
