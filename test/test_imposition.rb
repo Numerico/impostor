@@ -42,6 +42,7 @@ class TestImpostor < Test::Unit::TestCase
     return Resultado.new(true,nil)
   end
   #
+  #TODO DRY!
   def nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,preguntas,respuestas)
     #dummies por el clásico bug de alchemist que pasa referencias...
     w_Dummy=w_.clone
