@@ -214,7 +214,6 @@ class TestImpostor < Test::Unit::TestCase
     esperados.push(Clases::Mensaje.new(6))#pliegos
     esperados.push(Clases::Mensaje.new(8))#MensajeVars
     esperados.push(Clases::Mensaje.new(9))#tiempo cut&Stack
-    esperados.push(Clases::Mensaje.new(11))#TODO ESCALA V!
     #
     respuestas=[]
     respuestas.push([Clases::PreguntaEscalado.new("horizontalmente"),true])#id:1
