@@ -690,18 +690,18 @@ def self.validacion(impostor, preguntas)
     end
     impostor.bookletz=booklets(pagsEnCuadernillo, impostor.nPaginas, impostor.nPaginasReal, q)
     impostor.nPaginas=impostor.bookletz.length/2
-    #if booklets requires more pages than we had calculated before
-    if impostor.nPliegos < impostor.nPaginas then
-      impostor.nPliegos=impostor.nPaginas
-    end
+    impostor.nPliegos=(2*impostor.nPaginas.to_f/(nXm*impostor.nY)).ceil  
+    #mensajes.push(Clases::MensajeDato.new(1, "paginas", 2))#info TODO if not already
   end
   #nPaginas multiplo de nX*nY
   if impostor.nX*impostor.nY!=0 and impostor.nPaginas%(impostor.nX*impostor.nY)!=0 then
     impostor.nPaginas=(impostor.nPaginas/(impostor.nX*impostor.nY)+1)*(impostor.nX*impostor.nY)
     mensajes.push(Clases::MensajeMultiplo.new(1, "El pdf tiene #{impostor.nPaginasReal} paginas, que impuestas en #{impostor.nX}x#{impostor.nY} son #{impostor.nPaginas} paginas"))
+    #TODO impostor.nPliegos=(impostor.nPaginas.to_f/(nXm*impostor.nY)).ceil ?
   end
-  #TODO ¿ROTAR? si se gasta menos espacio por pliego o en total da menos pliegos
+  
   return Clases::RespuestaImpostor.new(preguntas,mensajes)
 end
+#TODO ¿ROTAR? si se gasta menos espacio por pliego o en total da menos pliegos
 
 end
