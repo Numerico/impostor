@@ -159,7 +159,6 @@ def self.imponerStack(impostor,temp)
   hC=pdflatexUnit(impostor.h, impostor.h_["unidad"])
   impostor.h=hC[0]
   impostor.h_["unidad"]=hC[1]
-  
   #las paginas que no existen se dejan en blanco
   cS=cutStack(impostor.nX,impostor.nY,impostor.nPaginas,impostor.nPliegos,impostor.w.to_f,impostor.h.to_f)
   for i in 0...cS.size
@@ -187,7 +186,8 @@ def self.imponerStack(impostor,temp)
     cutStack.puts "marginpar=0mm"
     cutStack.puts "}"
     cutStack.puts "\\begin{document}"
-    cutStack.puts "\\includepdf[pages={#{cS}},nup=#{impostor.nX}x#{impostor.nY},noautoscale, frame, width=#{impostor.w}#{impostor.w_["unidad"]}, height=#{impostor.h}#{impostor.h_["unidad"]}]{#{temp}}"
+    cutStack.puts "\\includepdf[pages={#{cS}},nup=#{impostor.nX}x#{impostor.nY},noautoscale, width=#{impostor.w}#{impostor.w_["unidad"]}, height=#{impostor.h}#{impostor.h_["unidad"]}]{#{temp}}"
+    #TODO frame opcional
     cutStack.puts "\\end{document}"
   end
   
@@ -328,7 +328,7 @@ end
 def self.cutStack(nX,nY,nPaginas,nPliegos,w,h)
 	coordenadas=getCoordinates(nX,nY,w,h)
 	posiciones=myPlacePDF(nX,nY,nPaginas,nPliegos)
-	remix=[]
+  remix=[]
 	for i in 0...posiciones.size
 		mix=Clases::Mix.new(posiciones[i].mC, coordenadas[posiciones[i].mP].x, coordenadas[posiciones[i].mP].y, posiciones[i].t)
 		remix.insert(i, mix)
@@ -690,6 +690,10 @@ def self.validacion(impostor, preguntas)
     end
     impostor.bookletz=booklets(pagsEnCuadernillo, impostor.nPaginas, impostor.nPaginasReal, q)
     impostor.nPaginas=impostor.bookletz.length/2
+    #if booklets requires more pages than we had calculated before
+    if impostor.nPliegos < impostor.nPaginas then
+      impostor.nPliegos=impostor.nPaginas
+    end
   end
   #nPaginas multiplo de nX*nY
   if impostor.nX*impostor.nY!=0 and impostor.nPaginas%(impostor.nX*impostor.nY)!=0 then

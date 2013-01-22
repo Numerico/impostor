@@ -157,46 +157,7 @@ class TestImpostor < Test::Unit::TestCase
       `rm -r #{File.dirname($temp)}`
     end
   end
-  
-  #foldable
-  def test_nUpBooklets
-    Metodos.refresh()
-    #
-    w_=Metodos.nuevo(0,"point")
-    h_=Metodos.nuevo(0,"point")
-    wP_=Metodos.nuevo(0,"point")
-    hP_=Metodos.nuevo(0,"point")
-    nX=Metodos.nuevo(2,nil)
-    nY=Metodos.nuevo(1,nil)
-    nPaginas=""
-    nPliegos=""
-    cuadernillos=true
-    #
-    esperados=[]
-    esperados.push(Clases::Mensaje.new(13))#PreguntacXC
-    esperados.push(Clases::Mensaje.new(1))
-    esperados.push(Clases::Mensaje.new(2))
-    esperados.push(Clases::Mensaje.new(3))
-    esperados.push(Clases::Mensaje.new(4))
-    esperados.push(Clases::Mensaje.new(5))
-    esperados.push(Clases::Mensaje.new(7))
-    esperados.push(Clases::Mensaje.new(6))
-    esperados.push(Clases::Mensaje.new(8))
-    esperados.push(Clases::Mensaje.new(9))
-    esperados.push(Clases::Mensaje.new(14))#MensajeTiempo Booklets
-    #
-    respuestas=[]
-    respuestas.push([Clases::PreguntaCXC.new(),Metodos.nuevo(0,nil)])
-    #
-    resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,nil,respuestas)
-    assert(resultado.yn,resultado.msg)
-  ensure
-    #limpio todo, aunque se caiga
-    if File.dirname($temp)!=nil then
-      `rm -r #{File.dirname($temp)}`
-    end
-  end
-  
+    
   #solo escala horizontalmente
   def test_cruzado
     Metodos.refresh()
@@ -260,6 +221,164 @@ class TestImpostor < Test::Unit::TestCase
     #
     respuestas=[]
     respuestas.push([Clases::PreguntaEscalado.new("verticalmente"),true])#id:2
+    #
+    resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,nil,respuestas)
+    assert(resultado.yn,resultado.msg)
+  ensure
+    #limpio todo, aunque se caiga
+    if File.dirname($temp)!=nil then
+      `rm -r #{File.dirname($temp)}`
+    end
+  end
+  
+  #BOOKLETS
+  
+  #foldable, one inside an other
+  def test_nUpBooklets
+    Metodos.refresh()
+    #
+    w_=Metodos.nuevo(0,"point")
+    h_=Metodos.nuevo(0,"point")
+    wP_=Metodos.nuevo(0,"point")
+    hP_=Metodos.nuevo(0,"point")
+    nX=Metodos.nuevo(2,nil)
+    nY=Metodos.nuevo(1,nil)
+    nPaginas=""
+    nPliegos=""
+    cuadernillos=true
+    #
+    esperados=[]
+    esperados.push(Clases::Mensaje.new(13))#PreguntacXC
+    esperados.push(Clases::Mensaje.new(1))
+    esperados.push(Clases::Mensaje.new(2))
+    esperados.push(Clases::Mensaje.new(3))
+    esperados.push(Clases::Mensaje.new(4))
+    esperados.push(Clases::Mensaje.new(5))
+    esperados.push(Clases::Mensaje.new(7))
+    esperados.push(Clases::Mensaje.new(6))
+    esperados.push(Clases::Mensaje.new(8))
+    esperados.push(Clases::Mensaje.new(9))
+    esperados.push(Clases::Mensaje.new(14))#MensajeTiempo Booklets
+    #
+    respuestas=[]
+    respuestas.push([Clases::PreguntaCXC.new(),Metodos.nuevo(0,nil)])
+    #
+    resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,nil,respuestas)
+    assert(resultado.yn,resultado.msg)
+  ensure
+    #limpio todo, aunque se caiga
+    if File.dirname($temp)!=nil then
+      `rm -r #{File.dirname($temp)}`
+    end
+  end
+  
+  #foldable
+  def test_nUpBooklets_side_by_side
+    Metodos.refresh()
+    #
+    w_=Metodos.nuevo(0,"point")
+    h_=Metodos.nuevo(0,"point")
+    wP_=Metodos.nuevo(0,"point")
+    hP_=Metodos.nuevo(0,"point")
+    nX=Metodos.nuevo(2,nil)
+    nY=Metodos.nuevo(1,nil)
+    nPaginas=""
+    nPliegos=""
+    cuadernillos=true
+    #
+    esperados=[]
+    esperados.push(Clases::Mensaje.new(13))#PreguntacXC
+    esperados.push(Clases::Mensaje.new(1))
+    esperados.push(Clases::Mensaje.new(2))
+    esperados.push(Clases::Mensaje.new(3))
+    esperados.push(Clases::Mensaje.new(4))
+    esperados.push(Clases::Mensaje.new(5))
+    esperados.push(Clases::Mensaje.new(7))
+    esperados.push(Clases::Mensaje.new(6))
+    esperados.push(Clases::Mensaje.new(8))
+    esperados.push(Clases::Mensaje.new(9))
+    esperados.push(Clases::Mensaje.new(14))#MensajeTiempo Booklets
+    #
+    respuestas=[]
+    respuestas.push([Clases::PreguntaCXC.new(),Metodos.nuevo(1,nil)])
+    #
+    resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,nil,respuestas)
+    assert(resultado.yn,resultado.msg)
+  ensure
+    #limpio todo, aunque se caiga
+    if File.dirname($temp)!=nil then
+      `rm -r #{File.dirname($temp)}`
+    end
+  end
+  
+  #foldable, in groups of booklets
+  def test_nUpBooklets_groups
+    Metodos.refresh()
+    #
+    w_=Metodos.nuevo(0,"point")
+    h_=Metodos.nuevo(0,"point")
+    wP_=Metodos.nuevo(0,"point")
+    hP_=Metodos.nuevo(0,"point")
+    nX=Metodos.nuevo(2,nil)
+    nY=Metodos.nuevo(1,nil)
+    nPaginas=""
+    nPliegos=""
+    cuadernillos=true
+    #
+    esperados=[]
+    esperados.push(Clases::Mensaje.new(13))#PreguntacXC
+    esperados.push(Clases::Mensaje.new(1))
+    esperados.push(Clases::Mensaje.new(2))
+    esperados.push(Clases::Mensaje.new(3))
+    esperados.push(Clases::Mensaje.new(4))
+    esperados.push(Clases::Mensaje.new(5))
+    esperados.push(Clases::Mensaje.new(7))
+    esperados.push(Clases::Mensaje.new(6))
+    esperados.push(Clases::Mensaje.new(8))
+    esperados.push(Clases::Mensaje.new(9))
+    esperados.push(Clases::Mensaje.new(14))#MensajeTiempo Booklets
+    #
+    respuestas=[]
+    respuestas.push([Clases::PreguntaCXC.new(),Metodos.nuevo(2,nil)])
+    #
+    resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,nil,respuestas)
+    assert(resultado.yn,resultado.msg)
+  ensure
+    #limpio todo, aunque se caiga
+    if File.dirname($temp)!=nil then
+      `rm -r #{File.dirname($temp)}`
+    end
+  end
+  
+  #foldable, in groups of booklets
+  def test_nUpBooklets_groups_2x2
+    Metodos.refresh()
+    #
+    w_=Metodos.nuevo(0,"point")
+    h_=Metodos.nuevo(0,"point")
+    wP_=Metodos.nuevo(0,"point")
+    hP_=Metodos.nuevo(0,"point")
+    nX=Metodos.nuevo(2,nil)
+    nY=Metodos.nuevo(2,nil)
+    nPaginas=""
+    nPliegos=""
+    cuadernillos=true
+    #
+    esperados=[]
+    esperados.push(Clases::Mensaje.new(13))#PreguntacXC
+    esperados.push(Clases::Mensaje.new(1))
+    esperados.push(Clases::Mensaje.new(2))
+    esperados.push(Clases::Mensaje.new(3))
+    esperados.push(Clases::Mensaje.new(4))
+    esperados.push(Clases::Mensaje.new(5))
+    esperados.push(Clases::Mensaje.new(7))
+    esperados.push(Clases::Mensaje.new(6))
+    esperados.push(Clases::Mensaje.new(8))
+    esperados.push(Clases::Mensaje.new(9))
+    esperados.push(Clases::Mensaje.new(14))#MensajeTiempo Booklets
+    #
+    respuestas=[]
+    respuestas.push([Clases::PreguntaCXC.new(),Metodos.nuevo(2,nil)])
     #
     resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,nil,respuestas)
     assert(resultado.yn,resultado.msg)
