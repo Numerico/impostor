@@ -100,7 +100,11 @@ class Mensaje
 		return @retorno
 	end
 	def ==(msg)
-	  return @id==msg.id
+	  if msg!=nil then
+	   return @id==msg.id
+	  else
+	   return false
+	  end
 	end 
 end
 #
@@ -308,6 +312,7 @@ end
 class PreguntaCXC < Pregunta 
   attr_reader :cXC
   def initialize()
+    @ide=4
     @mensaje="cXC - cuadernillos por costura (0->todos unos dentro de otros, 1->todos uno al lado de otro o n-> de a n cuadernillos uno dentro de otro)"
   end
   def metodo(cXC)
@@ -338,6 +343,8 @@ end
 class PreguntaTodasPag < Pregunta
   attr_accessor :nPliegos, :nX, :nY, :caben, :tiene
   def initialize(nPliegos, nX, nY, caben, tiene)
+    @ide=3
+    @mensaje="el pdf tiene #{tiene.to_i} paginas, pero en #{nPliegos.to_i} de #{nX}x#{nY} caben #{caben.to_i} paginas ¿usar las del pdf? (y/n)"
     @nPliegos=nPliegos
     @nX=nX
     @nY=nY

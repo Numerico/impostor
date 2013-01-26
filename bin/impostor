@@ -67,7 +67,7 @@ def escalado(tipo)
 end
 #
 def todasPag(nPliegos, nX, nY, caben, tiene)
-  STDOUT.puts("el pdf tiene #{tiene.to_i} paginas, pero en #{nPliegos.to_i} de #{nX}x#{nY} caben #{caben.to_i} paginas ¿usar las del pdf? (y/n)")
+  #STDOUT.puts("el pdf tiene #{tiene.to_i} paginas, pero en #{nPliegos.to_i} de #{nX}x#{nY} caben #{caben.to_i} paginas ¿usar las del pdf? (y/n)")
     escalar=STDIN.gets.to_s
   if escalar[0]==121 then#Y
     return true

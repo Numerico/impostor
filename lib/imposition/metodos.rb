@@ -421,14 +421,14 @@ def self.mult4(paginasEnPliego)
 end
 
 def self.cortarCola(nPaginas, pagsEnCuadernillo, cuadernillosPorCostura)
-  max = (nPaginas/pagsEnCuadernillo).ceil
+  max = (nPaginas.to_f/pagsEnCuadernillo.to_f).ceil
   if max*pagsEnCuadernillo>nPaginas then
     anterior=pagsEnCuadernillo*(max-1)
     q=nPaginas-anterior
     if q%4!=0 then
       q=((q/4)+1)*4
     end
-    if anterior+q < max*pagsEnCuadernillo then
+    if anterior+q < max*pagsEnCuadernillo then 
       return Clases::PreguntaReducir.new(cuadernillosPorCostura, max*pagsEnCuadernillo-nPaginas, q/4, (anterior+q)-nPaginas, q)
     end
   end
@@ -603,14 +603,14 @@ def self.validacion(impostor, preguntas)
   hPDummy=impostor.hP_["numero"].send(impostor.hP_["unidad"])
   if redondear(impostor.nX*impostor.w.to_f) > redondear(impostor.wP.to(impostor.w_["unidad"]).to_f) then
     mensajes.push(Clases::MensajeMedida.new(3, "horizontal", [impostor.nX, impostor.w_, impostor.wP_]))#error
-  elsif impostor.nX>0 and wPDummy -(impostor.nX*impostor.w.to_f).send(impostor.w_["unidad"]) > 0.send(impostor.wP_["unidad"]) then
+  elsif impostor.nX>0 and wPDummy -(impostor.nX*impostor.w.to_f).send(impostor.w_["unidad"]) > 1.send("point") then
     sobra=impostor.wP-(impostor.nX*impostor.w.to_f).send(impostor.w_["unidad"])
     impostor.wP=impostor.wP_["numero"].send(impostor.wP_["unidad"])
     mensajes.push(Clases::MensajeMedida.new(2, "horizontal", [sobra, impostor.wP_["unidad"]]))#warn
   end
   if redondear(impostor.nY*impostor.h.to_f) > redondear(impostor.hP.to(impostor.h_["unidad"]).to_f) then
     mensajes.push(Clases::MensajeMedida.new(3, "vertical", [impostor.nY, impostor.h_, impostor.hP_]))#error
-  elsif impostor.nY>0 and hPDummy - (impostor.nY*impostor.h.to_f).send(impostor.h_["unidad"]) > 0.send(impostor.h_["unidad"]) then
+  elsif impostor.nY>0 and hPDummy - (impostor.nY*impostor.h.to_f).send(impostor.h_["unidad"]) > 1.send("point") then
     sobra=impostor.hP-(impostor.nY*impostor.h.to_f).send(impostor.h_["unidad"])
     impostor.hP=impostor.hP_["numero"].send(impostor.hP_["unidad"])
     mensajes.push(Clases::MensajeMedida.new(2, "vertical", [sobra, impostor.hP_["unidad"]]))#warn
