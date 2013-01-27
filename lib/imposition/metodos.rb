@@ -682,7 +682,10 @@ def self.validacion(impostor, preguntas)
       pagsEnCuadernillo=impostor.cuadernillosPorCostura*4
     end
     if preguntas["reducir"]==nil or !preguntas["reducir"].ok then
-      preguntas["reducir"]=cortarCola(impostor.nPaginas, pagsEnCuadernillo, impostor.cuadernillosPorCostura)
+      reducir=cortarCola(impostor.nPaginas, pagsEnCuadernillo, impostor.cuadernillosPorCostura)
+      if reducir!=nil then
+        preguntas["reducir"]=reducir
+      end
     else
       if preguntas["reducir"].yn then
         q=preguntas["reducir"].q   
