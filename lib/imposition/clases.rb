@@ -360,6 +360,7 @@ end
 class PreguntaReducir < Pregunta
   attr_reader :q, :cuadernillosPorCostura, :paginasSobran, :nCuad, :sobranMenos
   def initialize(cuadernillosPorCostura, paginasSobran, nCuad, sobranMenos, q)
+    @ide=5
     @mensaje="al ultimo grupo de #{cuadernillosPorCostura} cuadernillos le sobraran #{paginasSobran}p podemos reducirlo a #{nCuad} cuadernillos, asi sobrarian #{sobranMenos}. ¿0K? (y/n)"
     @cuadernillosPorCostura=cuadernillosPorCostura
     @paginasSobran=paginasSobran
