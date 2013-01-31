@@ -17,6 +17,6 @@ $work="/tmp"
 check=Metodos.checksCompile()
 if check.instance_of? Clases::Mensaje then
   puts check.mensaje
-  exit
+  #exit
 end
 

@@ -1,4 +1,4 @@
 impostor
 ========
 
-script de imposición editorial (nup, cut&amp;Stack, booklets, etc.)
+script de imposicion editorial (nup, cut&amp;Stack, booklets, etc.)

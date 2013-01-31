@@ -1,3 +1,7 @@
+#!/bin/env ruby
+# encoding: utf-8
+
+
 module Metodos
 
 #WORK
@@ -49,7 +53,7 @@ def checksRun(entrada,salida)
           return Clases::Mensaje.new(3,"el archivo "+entrada+" no es pdf")
         end
       else
-      return Clases::Mensaje.new(3,"el archivo "+entrada+" no es mío")
+      return Clases::Mensaje.new(3,"el archivo "+entrada+" no es mio")
       end
     else
     return Clases::Mensaje.new(3,entrada+" no es un archivo")
@@ -120,7 +124,7 @@ def self.paginasdelpdf(pdfinfo)
   return paginas.to_i 
 end
 
-#tamaño de página
+#tamaño de pagina
 def self.pagesize(pdfinfo)
   info = pdfinfo.chomp
   busca = /Page size\s*\:\s*([\d\.]+)\s*x\s*([\d\.]+).*/
@@ -175,7 +179,7 @@ def self.imponerStack(impostor,temp)
     cutStack.puts "\\usepackage{geometry}"
     cutStack.puts "\\geometry{"
     cutStack.puts "papersize={#{impostor.wP}#{impostor.wP_["unidad"]},#{impostor.hP}#{impostor.hP_["unidad"]}},"
-    cutStack.puts "left=0mm,"#posibilidad de márgenes
+    cutStack.puts "left=0mm,"#posibilidad de margenes
     cutStack.puts "right=0mm,"
     cutStack.puts "top=0mm,"
     cutStack.puts "bottom=0mm,"
@@ -222,7 +226,7 @@ def self.imponerBooklet(impostor,temp)
     booklet.puts "\\usepackage{geometry}"
     booklet.puts "\\geometry{"
     booklet.puts "papersize={#{impostor.w_["numero"]}#{impostor.h_["unidad"]},#{impostor.h_["numero"]}#{impostor.h_["unidad"]}},"
-    booklet.puts "left=0mm,"#posibilidad de márgenes
+    booklet.puts "left=0mm,"#posibilidad de margenes
     booklet.puts "right=0mm,"
     booklet.puts "top=0mm,"
     booklet.puts "bottom=0mm,"
@@ -277,7 +281,7 @@ end
 def self.getCoordinates(nX,nY,w,h)
 
 	coordenadas=[]
-	#posibilidad de usar márgenes
+	#posibilidad de usar margenes
 	x0=0
 	y0=0
 	xN=x0+w*(nX-1)
@@ -464,7 +468,7 @@ def self.validacion(impostor, preguntas)
     if impostor.wP!=0.point then
       if impostor.nX==0 then
         impostor.nX=(wP/w).floor
-        impostor.wP=impostor.wP_["numero"].send(impostor.wP_["unidad"])#operación alchemist cambia el operando
+        impostor.wP=impostor.wP_["numero"].send(impostor.wP_["unidad"])#operacion alchemist cambia el operando
         if impostor.nX==0 then
           mensajes.push(Clases::MensajeDato.new(3, "horizontal", 5))#error
         else
@@ -487,7 +491,7 @@ def self.validacion(impostor, preguntas)
         preguntas["escaladoH"]=Clases::PreguntaEscalado.new("horizontalmente")
       else
         if preguntas["escaladoH"].yn then
-          impostor.w=(impostor.wP.to_f/(impostor.nX*(impostor.cuadernillos ? 2 : 1))).send(impostor.wP_["unidad"])#divido en 2 porque ya lo multipliqué
+          impostor.w=(impostor.wP.to_f/(impostor.nX*(impostor.cuadernillos ? 2 : 1))).send(impostor.wP_["unidad"])#divido en 2 porque ya lo multiplique
           impostor.w_["numero"]=impostor.w
           impostor.w_["unidad"]=impostor.wP_["unidad"]
           mensajes.push(Clases::MensajeDato.new(1, "horizontal", 3))#info

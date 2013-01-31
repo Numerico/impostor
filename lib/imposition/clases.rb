@@ -1,4 +1,6 @@
-#Ruby without rails
+#!/bin/env ruby
+# encoding: utf-8
+
 module 	Clases
   
 class Imposicion
@@ -252,7 +254,7 @@ end
 class MensajeVars < Mensaje
   def initialize(*args)
     if args.size==0 then
-     super(8)#clásico
+     super(8)#clasico
     elsif args.size==2 then
       @id=8
       super(args[0],args[1])
@@ -404,6 +406,6 @@ class RespuestaImpostor
   end
 end
 
-end#fin módulo
+end#fin modulo
 #proximo
 #16
