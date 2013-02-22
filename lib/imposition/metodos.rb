@@ -4,7 +4,12 @@
 module Metodos
 
 #WORK
-def funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,temp)
+def funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,temp,locale)
+  if locale!=nil then
+    I18n.locale=locale
+  else
+    locale=:en
+  end
   impostor=Clases::Imposicion.new(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos)
   pdfinfo(impostor,temp)
   retorno=validacion(impostor, preguntas)

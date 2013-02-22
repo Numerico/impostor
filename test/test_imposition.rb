@@ -49,7 +49,7 @@ class TestImpostor < Test::Unit::TestCase
     h_Dummy=h_.clone
     wP_Dummy=wP_.clone
     hP_Dummy=hP_.clone
-    impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,$temp)
+    impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,$temp,nil)
     if impostor.preguntasOk then
       if impostor.valido then
         return siySoloSi(impostor.mensajes,esperados)

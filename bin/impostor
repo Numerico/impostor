@@ -129,7 +129,7 @@ nPliegos_=input(I18n.t(:nSheets)+":")
 cuadernillos = enBooklets()
 #
 def recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos, preguntas)
-  impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,$temp)
+  impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,$temp,nil)
   if impostor.preguntasOk then
     if impostor.valido then
       puts I18n.t(:msgs)#blink blink

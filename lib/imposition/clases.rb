@@ -347,7 +347,7 @@ class PreguntaTodasPag < Pregunta
   attr_accessor :nPliegos, :nX, :nY, :caben, :tiene
   def initialize(nPliegos, nX, nY, caben, tiene)
     @ide=3
-    @mensaje=I18n.t(:allPdfq, :p=>tiene.to_i, :s=>nPliegos.to_i, :nX=>nX, :nY=>nY, :c=>caben.to_i,)
+    @mensaje=I18n.t(:allPdfq, :p=>tiene.to_i, :s=>nPliegos.to_i, :nX=>nX, :nY=>nY, :c=>caben.to_i)
     @nPliegos=nPliegos
     @nX=nX
     @nY=nY
