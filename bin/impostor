@@ -13,7 +13,7 @@ def input(nombre)
     retorno["unidad"]="point"#default
     return retorno    
   else
-    regex = /(\d+\.*\d*)\s*(\w*)/
+    regex = /(\d*\.*\d*)\s*(\w*)/
     split = regex.match(input)
     if split!=nil then
       retorno["numero"]=split[1].to_f
@@ -33,9 +33,9 @@ end
 def enBooklets()
   STDOUT.puts("¿imponer en cuadernillos? (y/n)")
     bookies=STDIN.gets.to_s
-  if bookies[0]==121 then#Y
+  if bookies[0]=="y" then#Y
     return true
-  elsif bookies[0]==110 then#N
+  elsif bookies[0]=="n" then#N
     return false
   else
     enBooklets()
