@@ -4,7 +4,7 @@ Gem::Specification.new do |s|
   s.date        = '2013-02-22'
   s.summary     = "editorial imposition script in nUp & booklets"
   s.description = "nUp & booklets"
-  s.authors     = ["Numerico"]
+  s.authors     = ["numerico"]
   s.email       = 'webmaster@numerica.cl'
   s.files       = Dir['lib/*']
   s.files       +=Dir['lib/imposition/*']

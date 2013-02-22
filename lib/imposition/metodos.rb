@@ -1,7 +1,6 @@
 #!/bin/env ruby
 # encoding: utf-8
 
-
 module Metodos
 
 #WORK
@@ -24,7 +23,7 @@ def checksCompile()
   $requerimientos.each do |k,v|
     `which #{v}`
     if !$?.success? then
-      return Clases::Mensaje.new(3,"#{v} no es ejecutable")
+      return Clases::Mensaje.new(3, I18n.t(:notexe, :x=>v))
     end  
   end
   #probamos que exista el directorio de trabajo
@@ -36,10 +35,10 @@ def checksCompile()
         Dir.mkdir($work)
       end
     else
-      return Clases::Mensaje.new(3,"el directorio de trabajo "+$work+" no se puede escribir")
+      return Clases::Mensaje.new(3,I18n.t(:wknowrite, :work=>$work))
     end 
   else
-    return Clases::Mensaje.new(3,"el directorio de trabajo "+$work+ " no existe")
+    return Clases::Mensaje.new(3,I18n.t(:wknoexist, :work=>$work))
   end
 end
 
@@ -50,23 +49,23 @@ def checksRun(entrada,salida)
       if File.owned?(entrada) then
         busca = /.*(.pdf)/
         if !busca.match(File.basename(entrada)) then
-          return Clases::Mensaje.new(3,"el archivo "+entrada+" no es pdf")
+          return Clases::Mensaje.new(3,I18n.t(:nopdf, :entrada=>entrada))
         end
       else
-      return Clases::Mensaje.new(3,"el archivo "+entrada+" no es mio")
+      return Clases::Mensaje.new(3,I18n.t(:notmine))
       end
     else
-    return Clases::Mensaje.new(3,entrada+" no es un archivo")
+    return Clases::Mensaje.new(3,I18n.t(:notafile, :entrada=>entrada))
     end
   else
-    return Clases::Mensaje.new(3,"no ha especificado archivo a imponer")
+    return Clases::Mensaje.new(3,I18n.t(:nofile))
   end
   #y la salida, de haberla
   if salida!=nil then
   #if File.exists?(salida) then #TODO crearla si es escribible
     salidaDir=File.dirname(salida)
     if !File.writable?(salidaDir) or !File.writable_real?(salidaDir) then
-      return Clases::Mensaje.new(3,"el directorio de salida "+salida+" no se puede escribir")
+      return Clases::Mensaje.new(3,I18n.t(:exitnowrite))
     end 
   #else
   # puts salida+ " no existe"
