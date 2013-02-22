@@ -8,6 +8,7 @@ Gem::Specification.new do |s|
   s.email       = 'webmaster@numerica.cl'
   s.files       = Dir['lib/*']
   s.files       +=Dir['lib/imposition/*']
+  s.files       +=Dir['lib/locales/*']
   s.add_runtime_dependency 'alchemist'
   s.add_runtime_dependency 'uuidtools'
   s.add_runtime_dependency 'fileutils'
