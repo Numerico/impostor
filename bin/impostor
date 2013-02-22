@@ -24,18 +24,18 @@ def input(nombre)
       end
       return retorno
     else
-      puts "la unidad de #{input} no es correcta"
+      puts I18n.t(:badunit, :input => input)
       input(nombre)
     end
   end
 end
 #
 def enBooklets()
-  STDOUT.puts("¿imponer en cuadernillos? (y/n)")
+  STDOUT.puts(I18n.t(:bookletsq))
     bookies=STDIN.gets.to_s
-  if bookies[0]=="y" then#Y
+  if bookies[0].eql?("y") then
     return true
-  elsif bookies[0]=="n" then#N
+  elsif bookies[0].eql?("n") then
     return false
   else
     enBooklets()
@@ -53,15 +53,16 @@ end
 #
 def escalado(tipo)
   if tipo=="horizontalmente" then
-    puts "no especifico ancho de pagina pero si ancho de pliego y numero de paginas por pliego "+tipo 
+    puts I18n.t(:WnX)+" "+I18n.t(tipo) 
   else
-    puts "no especifico alto de pagina pero si alto de pliego y numero de paginas por pliego "+tipo
+    puts I18n.t(:HnY)+" "+I18n.t(tipo)
   end
-  STDOUT.puts("¿escalar "+tipo+"? (y/n)")
+
+  puts(I18n.t(:scale, :tp=>I18n.t(tipo)))
     escalar=STDIN.gets.to_s
-  if escalar[0]==121 then#Y
+  if escalar[0].eql?("y") then
     return true
-  elsif escalar[0]==110 then#N
+  elsif escalar[0].eql?("n") then
     return false
   else
     escalado(tipo)
@@ -69,11 +70,11 @@ def escalado(tipo)
 end
 #
 def todasPag(nPliegos, nX, nY, caben, tiene)
-  #STDOUT.puts("el pdf tiene #{tiene.to_i} paginas, pero en #{nPliegos.to_i} de #{nX}x#{nY} caben #{caben.to_i} paginas ¿usar las del pdf? (y/n)")
+  #TODO rm? STDOUT.puts("el pdf tiene #{tiene.to_i} paginas, pero en #{nPliegos.to_i} de #{nX}x#{nY} caben #{caben.to_i} paginas ¿usar las del pdf? (y/n)")
     escalar=STDIN.gets.to_s
-  if escalar[0]==121 then#Y
+  if escalar[0].eql?("y") then
     return true
-  elsif escalar[0]==110 then#N
+  elsif escalar[0].eql?("n") then
     return false
   else
     todasPag(nPliegos, nX, nY, caben, tiene)
@@ -81,12 +82,12 @@ def todasPag(nPliegos, nX, nY, caben, tiene)
 end
 #
 def reducirUltimo(cuadernillosPorCostura, paginasSobran, nCuad, sobranMenos)
-  puts "al ultimo grupo de #{cuadernillosPorCostura} cuadernillos le sobraran #{paginasSobran}p"
-  puts "podemos reducirlo a #{nCuad} cuadernillos, asi sobrarian #{sobranMenos}. ¿0K? (y/n)"
+  puts I18n.t(:excesscXC, :cXC=>cuadernillosPorCostura, :p=>paginasSobran)
+  puts I18n.t(:reducecXC, :nCuad=>nCuad,:sobranMenos=>sobranMenos)
   ok=STDIN.gets.to_s
-  if ok[0]==121 then#Y
+  if ok[0].eql?("y") then
     return true
-  elsif ok[0]==110 then#N
+  elsif ok[0].eql?("n") then
     return false
   else
     reducirUltimo(cuadernillosPorCostura, paginasSobran, nCuad, sobranMenos)
@@ -123,15 +124,15 @@ wP_=input("W:")
 hP_=input("H:")
 nX_=input("nX:")
 nY_=input("nY:")
-nPaginas_=input("nPaginas:")
-nPliegos_=input("nPliegos:")
+nPaginas_=input(I18n.t(:nPages)+":")
+nPliegos_=input(I18n.t(:nSheets)+":")
 cuadernillos = enBooklets()
 #
 def recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos, preguntas)
   impostor=Metodos.funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,$temp)
   if impostor.preguntasOk then
     if impostor.valido then
-      puts "::::::::::::mensajes:::::::::::::"#blink blink
+      puts I18n.t(:msgs)#blink blink
       impostor.mensajes.each do |mensaje|
         puts mensaje.mensaje
       end
@@ -139,7 +140,7 @@ def recursivo(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos, preguntas)
       impostor.errores().each do |error|
         puts error.mensaje
       end
-      puts "el programa no se ejecutara"
+      puts I18n.t(:dead)
       exit
     end
   else
@@ -178,7 +179,7 @@ if $salida == nil then
 end
 FileUtils.mv(File.dirname($temp)+"/"+"cutStack.pdf", $salida)
 #
-puts "::::::::::::Game Over::::::::::::"#blink blink
+puts I18n.t(:end)#blink blink
 ensure
   #limpio todo, aunque se caiga
   if File.dirname($temp)!=nil then
