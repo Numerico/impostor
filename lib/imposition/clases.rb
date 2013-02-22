@@ -31,15 +31,15 @@ class Imposicion
     if @cuadernillos then
       nXm*=2
     end
-    str=":::::::::::::::vars::::::::::::::\n"
+    str=I18n.t(:params)+"\n"
     str+="nX:"+nXm.to_s+"\n"
     str+="nY:"+@nY.to_s+"\n"
-    str+="nPaginas:"+@nPaginas.to_s+"\n"
-    str+="nPliegos:"+@nPliegos.to_s+"\n"
-    str+="ancho:"+@w.to_s+" "+@w_["unidad"]+"\n"
-    str+="alto:"+@h.to_s+" "+@h_["unidad"]+"\n"
-    str+="anchoPliego:"+@wP.to_s+" "+@wP_["unidad"]+"\n"
-    str+="altoPliego:"+@hP.to_s+" "+@hP_["unidad"]+"\n"
+    str+=I18n.t(:nPages)+":"+@nPaginas.to_s+"\n"
+    str+=I18n.t(:nSheets)+":"+@nPliegos.to_s+"\n"
+    str+=I18n.t(:pwidth)+":"+@w.to_s+" "+@w_["unidad"]+"\n"
+    str+=I18n.t(:pheight)+":"+@h.to_s+" "+@h_["unidad"]+"\n"
+    str+=I18n.t(:swidth)+":"+@wP.to_s+" "+@wP_["unidad"]+"\n"
+    str+=I18n.t(:sheight)+":"+@hP.to_s+" "+@hP_["unidad"]+"\n"
     return str
   end
 end
@@ -92,11 +92,11 @@ class Mensaje
 	end
 	def to_s
 		if @level==1 then
-			@retorno="info: "
+			@retorno=I18n.t(:info)+": "
 		elsif @level==2 then
-			@retorno="Warn: "
+			@retorno=I18n.t(:warn)+": "
 		elsif @level==3 then
-			@retorno="ERROR: "
+			@retorno=I18n(:error)+": "
 		end
 		@retorno+=@mensaje.to_s
 		return @retorno
@@ -125,74 +125,74 @@ class MensajeDato < Mensaje
 		if tipo=="horizontal" then
 			if level==1 then#info
 				if numero==1 then
-					return "se calcula la cantidad de paginas por pliego horizontalmente en base al ancho del pliego y el de la pagina"
+					return I18n.t(:nXCalc)
 				elsif numero==2 then
-					return [2,"se calcula el ancho del pliego en base al de la pagina y la cantidad de paginas por pliego horizontalmente"]
+					return [2,I18n.t(:wPCalc)]
 				elsif numero==3 then
-					return [12,"se calcula el ancho de la pagina en base al del pliego y la cantidad de paginas por pliego horizontalmente"]
+					return [12,I18n.t(:wCalc)]
 				elsif numero==4 then
-					return [1,"se toma el ancho real de la pagina"]
+					return [1,I18n.t(:wRoyal)]
 				end
 			elsif level==3 then#error
 				if numero==1 then
-					return "ha especificado ancho de pagina pero no de pliego ni cuantas paginas por pliego horizontalmente"
+					return I18n.t(:wOnly)
 				elsif numero==2 then
-					return "ha especificado ancho de pliego pero no de pagina ni cuantas paginas por pliego horizontalmente"
+					return I18n.t(:wPOnly)
 				elsif numero==3 then
-					return "ha especificado cuantas paginas por pliego horizontalmente pero no ancho de pagina ni de pliego"
+					return I18n.t(:nXOnly)
 				elsif numero==4 then
-					return "no ha especificado ni ancho de pagina, ni ancho de pliego, ni cuantos paginas por pliego horizontalmente"
+					return I18n.t(:nothingH)
 				elsif numero==5 then
-					return "no cabe ninguna pagina horizontalmente"
+					return I18n.t(:noPageH)
 				end
 			end
 		elsif tipo=="vertical" then
 			if level==1 then#info
 				if numero==1 then
-					return "se calcula la cantidad de paginas por pliego verticalmente en base al alto del pliego y el de la pagina"
+					return I18n.t(:nYCalc)
 				elsif numero==2 then
-					return [4,"se calcula el alto del pliego en base al de la pagina y la cantidad de paginas por pliego verticalmente"]
+					return [4,I18n.t(:hPCalc)]
 				elsif numero==3 then
-					return [11,"se calcula el alto de la pagina en base al del pliego y la cantidad de paginas por pliego verticalmente"]
+					return [11,I18n.t(:hCalc)]
 				elsif numero==4 then
-					return [3,"se toma el alto real de la pagina"]
+					return [3,I18n.t(:hRoyal)]
 				end
 			elsif level==3 then#error
 				if numero==1 then
-					return "ha especificado alto de pagina pero no de pliego ni cuantas paginas por pliego verticalmente"
+					return I18n.t(:hOnly)
 				elsif numero==2 then
-					return "ha especificado alto de pliego pero no de pagina ni cuantas paginas por pliego verticalmente"
+					return I18n.t(:hPOnly)
 				elsif numero==3 then
-					return "ha especificado cuantas paginas por pliego verticalmente pero no alto de pagina ni de pliego"
+					return I18n.t(:nYOnly)
 				elsif numero==4 then
-					return "no ha especificado ni alto de pagina, ni alto de pliego, ni cuantos paginas por pliego verticalmente"
+					return I18n.t(:nothingV)
 				elsif numero==5 then
-					return "no cabe ninguna pagina verticalmente"
+					return I18n.t(:noPageV)
 				end
 			end
 		elsif tipo=="paginas" then
 			if level==1 then
 				if numero==1 then
-					return "se calcula el numero de paginas a partir del numero de pliegos y de la cantidad de paginas por pliego"
+					return I18n.t(:nPageCalc)
 				elsif numero==2 then
-					return [6,"se calcula el numero de pliegos a partir del numero de paginas y de la cantidad de paginas por pliego"]
+					return [6,I18n.t(:nSheetCalc)]
 				elsif numero==3 then
-					return [5,"se usan todas las paginas del pdf"]
+					return [5,I18n.t(:nPagePdf)]
 				end
 			elsif level==3 then
 				if numero==1 then
-					return "esta especificando mas paginas de las que tiene el documento"
+					return I18n.t(:nPageXL)
 				else
-					return "no ha especificado numero de paginas ni de pliegos"
+					return I18n.t(:noPages)
 				end
 			end
 		elsif tipo=="pliegos" then
 			if level==1 then
-				return "se toman los #{numero} pliegos necesarios"
+				return I18n.t(:allSheet, :n=>numero)
 			elsif level==2 then
-				return "sobran #{numero} pliegos"
+				return I18n.t(:sheetXL, :n=>numero)
 			elsif level==3 then
-				return "faltan #{numero} pliegos"	
+				return I18n.t(:sheetXS, :n=>numero)	
 			end
 		end
 	
@@ -207,16 +207,17 @@ class MensajeMedida < Mensaje
 	def deducirMensaje(level, tipo, args)
 		if tipo=="horizontal" then
 			if level==3 then
-				return "no caben #{args[0]} paginas de #{args[1]["numero"].to_s+args[1]["unidad"]} de ancho en un pliego de #{args[2]["numero"].to_s+args[2]["unidad"]}"
+			  
+				return I18n.t(:nXwwPno, :nX=>args[0], :w=>args[1]["numero"].to_s+args[1]["unidad"], :wP=>args[2]["numero"].to_s+args[2]["unidad"])
 			elsif level==2 then
-				return "sobra #{args[0].to_s+args[1]} de ancho"
+				return I18n.t(:wPXL, :n=>args[0].to_s+args[1])
 			end
 		elsif tipo=="vertical" then
 			if level==3 then
-				return "no caben #{args[0]} paginas de #{args[1]["numero"].to_s+args[1]["unidad"]} de alto en un pliego de #{args[2]["numero"].to_s+args[2]["unidad"]}"
+				return I18n.t(:nYhhPno, :nY=>args[0], :h=>args[1]["numero"].to_s+args[1]["unidad"], :hP=>args[2]["numero"].to_s+args[2]["unidad"])
 			elsif level==2 then
 			  @id=15
-				return "sobra #{args[0].to_s+args[1]} de alto"
+				return I18n.t(:hPXL, :n=>args[0].to_s+args[1])
 			end
 		end
 	end
@@ -229,14 +230,14 @@ class MensajeTiempo < Mensaje
     @level=1
     if tipo==1 then#booklets
       @id=14#fijo
-      @mensaje="::::::::::::booklets:::::::::::::\n"#blink blink
-      @mensaje+="booklets: "
+      @mensaje=I18n.t(:bookltsblink)#blink blink
+      @mensaje+=I18n.t(:bookltsxplain)
     elsif tipo==2 then
       @id=9#fijo
-      @mensaje="::::::::::::cut&Stack::::::::::::\n"#blink blink
-      @mensaje+="cut&Stack: "
+      @mensaje=I18n.t(:nUpblink)#blink blink
+      @mensaje+=I18n.t(:nUpxplain)
     end  
-    @mensaje+=@tiempo.to_s+" segundos"
+    @mensaje+=@tiempo.to_s+" "+I18n.t(:s)
     super(level,mensaje)
   end
 end
@@ -246,7 +247,7 @@ class MensajeLadoLado < Mensaje
   def initialize(nP)
     @id=7#fijo
     @nP=nP
-    @mensaje="como son cuadernillos lado y lado los pliegos no pueden ser impares, se toman #{@nP}+1"
+    @mensaje=I18n.t(:sheetPair, :n=>@nP)
     super(1,@mensaje)
   end
 end
@@ -301,7 +302,7 @@ class PreguntaExigePar < Pregunta
   attr_accessor :nX
   def initialize(nX)
     @nX=nX
-    @mensaje="para imponer en cuadernillos tienen que caber horizontalmente en numeros pares pero ud especifico nX:#{@nX}."
+    @mensaje=I18n.t(:nXPair, :nX=>@nX)
     @ok=false
   end
   def metodo(nX)
@@ -315,7 +316,7 @@ class PreguntaCXC < Pregunta
   attr_reader :cXC
   def initialize()
     @ide=4
-    @mensaje="cXC - cuadernillos por costura (0->todos unos dentro de otros, 1->todos uno al lado de otro o n-> de a n cuadernillos uno dentro de otro)"
+    @mensaje=I18n.t(:cXC)
   end
   def metodo(cXC)
     @cXC=cXC["numero"].to_i
@@ -329,12 +330,12 @@ class PreguntaEscalado < Pregunta
     @tipo=tipo
     if @tipo=="horizontalmente" then
       @ide=1
-      @mensaje="no especifico ancho de pagina pero si ancho de pliego y numero de paginas por pliego "+tipo
+      @mensaje=I18n.t(:WnX)+" "+I18n.t(tipo) 
     elsif @tipo=="verticalmente" then
       @ide=2
-      @mensaje="no especifico alto de pagina pero si alto de pliego y numero de paginas por pliego "+tipo
+      @mensaje=I18n.t(:HnY)+" "+I18n.t(tipo)
     end
-    @mensaje+=" ¿escalar "+tipo+"?"
+    @mensaje+=I18n.t(:scale, :tp=>I18n.t(tipo))
   end
   def metodo(yn)
     @yn=yn
@@ -346,7 +347,7 @@ class PreguntaTodasPag < Pregunta
   attr_accessor :nPliegos, :nX, :nY, :caben, :tiene
   def initialize(nPliegos, nX, nY, caben, tiene)
     @ide=3
-    @mensaje="el pdf tiene #{tiene.to_i} paginas, pero en #{nPliegos.to_i} de #{nX}x#{nY} caben #{caben.to_i} paginas ¿usar las del pdf? (y/n)"
+    @mensaje=I18n.t(:allPdfq, :p=>tiene.to_i, :s=>nPliegos.to_i, :nX=>nX, :nY=>nY, :c=>caben.to_i,)
     @nPliegos=nPliegos
     @nX=nX
     @nY=nY
@@ -363,7 +364,7 @@ class PreguntaReducir < Pregunta
   attr_reader :q, :cuadernillosPorCostura, :paginasSobran, :nCuad, :sobranMenos
   def initialize(cuadernillosPorCostura, paginasSobran, nCuad, sobranMenos, q)
     @ide=5
-    @mensaje="al ultimo grupo de #{cuadernillosPorCostura} cuadernillos le sobraran #{paginasSobran}p podemos reducirlo a #{nCuad} cuadernillos, asi sobrarian #{sobranMenos}. ¿0K? (y/n)"
+    @mensaje=I18n.t(:reduceq, :cXC=>cuadernillosPorCostura, :extra=>paginasSobran, :n=>nCuad, :less=>sobranMenos)
     @cuadernillosPorCostura=cuadernillosPorCostura
     @paginasSobran=paginasSobran
     @nCuad=nCuad
@@ -407,5 +408,3 @@ class RespuestaImpostor
 end
 
 end#fin modulo
-#proximo
-#16
