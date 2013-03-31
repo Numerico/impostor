@@ -135,7 +135,7 @@ class MensajeDato < Mensaje
 				end
 			elsif level==3 then#error
 				if numero==1 then
-					return I18n.t(:wOnly)
+					return [13,I18n.t(:wOnly)]
 				elsif numero==2 then
 					return I18n.t(:wPOnly)
 				elsif numero==3 then
@@ -159,7 +159,7 @@ class MensajeDato < Mensaje
 				end
 			elsif level==3 then#error
 				if numero==1 then
-					return I18n.t(:hOnly)
+					return [14,I18n.t(:hOnly)]
 				elsif numero==2 then
 					return I18n.t(:hPOnly)
 				elsif numero==3 then

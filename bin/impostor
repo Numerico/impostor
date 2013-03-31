@@ -32,10 +32,10 @@ end
 #
 def enBooklets()
   STDOUT.puts(I18n.t(:bookletsq))
-    bookies=STDIN.gets.to_s
-  if bookies[0].eql?("y") then
+    bookies=STDIN.gets.to_s.strip
+  if bookies.eql?("y") then
     return true
-  elsif bookies[0].eql?("n") then
+  elsif bookies.eql?("n") then
     return false
   else
     enBooklets()
