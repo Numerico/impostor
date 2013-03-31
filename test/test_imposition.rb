@@ -472,5 +472,69 @@ class TestImpostor < Test::Unit::TestCase
       `rm -r #{File.dirname($temp)}`
     end
   end
+  
+  def test_deduce_nX_only
+    Metodos.refresh
+    #
+    w_=Metodos.nuevo(100,"mm")
+    h_=Metodos.nuevo(0,"point")
+    wP_=Metodos.nuevo(200,"mm")
+    hP_=Metodos.nuevo(0,"point")
+    nX=Metodos.nuevo(0,nil)
+    nY=Metodos.nuevo(2,nil)
+    nPaginas=""
+    nPliegos=""
+    cuadernillos=false
+    #
+    esperados=[]
+    esperados.push(Clases::Mensaje.new(15))#nXCalc
+    esperados.push(Clases::Mensaje.new(3))#hRoyal
+    esperados.push(Clases::Mensaje.new(4))#hPCalc
+    esperados.push(Clases::Mensaje.new(5))#nPagePdf
+    esperados.push(Clases::Mensaje.new(6))#nSheetCalc
+    esperados.push(Clases::Mensaje.new(7))#sheetPair
+    esperados.push(Clases::Mensaje.new(8))#MensajeVars
+    esperados.push(Clases::Mensaje.new(9))#MensajeTiempo
+    #
+    resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,nil,nil)   
+    assert(resultado.yn,resultado.msg)
+    #
+  ensure#limpio todo, aunque se caiga
+    if File.dirname($temp)!=nil then
+      `rm -r #{File.dirname($temp)}`
+    end
+  end
+  
+  def test_deduce_nY_only
+    Metodos.refresh
+    #
+    w_=Metodos.nuevo(0,"point")
+    h_=Metodos.nuevo(100,"mm")
+    wP_=Metodos.nuevo(0,"point")
+    hP_=Metodos.nuevo(200,"mm")
+    nX=Metodos.nuevo(2,nil)
+    nY=Metodos.nuevo(0,nil)
+    nPaginas=""
+    nPliegos=""
+    cuadernillos=false
+    #
+    esperados=[]
+    esperados.push(Clases::Mensaje.new(20))#nYCalc
+    esperados.push(Clases::Mensaje.new(1))#wRoyal
+    esperados.push(Clases::Mensaje.new(2))#wPCalc
+    esperados.push(Clases::Mensaje.new(5))#nPagePdf
+    esperados.push(Clases::Mensaje.new(6))#nSheetCalc
+    esperados.push(Clases::Mensaje.new(7))#sheetPair
+    esperados.push(Clases::Mensaje.new(8))#MensajeVars
+    esperados.push(Clases::Mensaje.new(9))#MensajeTiempo
+    #
+    resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,nil,nil)   
+    assert(resultado.yn,resultado.msg)
+    #
+  ensure#limpio todo, aunque se caiga
+    if File.dirname($temp)!=nil then
+      `rm -r #{File.dirname($temp)}`
+    end
+  end
 
 end
