@@ -101,11 +101,7 @@ $entrada=ARGV.shift
 $salida=ARGV.shift
 $locale=ARGV.shift
 
-if $locale!=nil then
-	I18n.locale=$locale.strip
-else
-	I18n.locale = :en
-end
+Metodos.localize($locale)
 
 #
 Metodos.refresh()

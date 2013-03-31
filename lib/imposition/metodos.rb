@@ -5,12 +5,7 @@ module Metodos
 
 #WORK
 def funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,temp,locale)
-    #TODO def:
-    if locale!=nil then
-      I18n.locale=locale
-    else
-      locale=:en
-    end
+  localize(locale)
   impostor=Clases::Imposicion.new(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos)
   pdfinfo(impostor,temp)
   retorno=validacion(impostor, preguntas)
@@ -108,8 +103,16 @@ def nuevo(valor,unidad)
   return retorno
 end
 
+def localize(locale)
+  if locale!=nil then
+    I18n.locale=locale
+  else
+    locale=:en
+  end
+end
+
 #########
-module_function :funcionar, :checksCompile, :checksRun, :input2alchemist, :refresh, :nuevo
+module_function :funcionar, :checksCompile, :checksRun, :input2alchemist, :refresh, :nuevo, :localize
 
 def self.pdfinfo(impostor, temp)
   Dir.chdir(File.dirname(temp))
