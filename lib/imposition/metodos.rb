@@ -5,15 +5,16 @@ module Metodos
 
 #WORK
 def funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,temp,locale)
-  if locale!=nil then
-    I18n.locale=locale
-  else
-    locale=:en
-  end
+    #TODO def:
+    if locale!=nil then
+      I18n.locale=locale
+    else
+      locale=:en
+    end
   impostor=Clases::Imposicion.new(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos)
   pdfinfo(impostor,temp)
   retorno=validacion(impostor, preguntas)
-  if retorno.preguntasOk then
+  if retorno.valido and retorno.preguntasOk then
     retorno.mensajes.push(Clases::MensajeVars.new(1,impostor.to_s))
     if impostor.cuadernillos then
       retorno.mensajes.push(imponerBooklet(impostor,temp))

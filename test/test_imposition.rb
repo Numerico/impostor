@@ -419,4 +419,27 @@ class TestImpostor < Test::Unit::TestCase
     end
   end
 
+  def test_page_not_enough
+    Metodos.refresh()
+    #
+    w_=Metodos.nuevo(105,"mm")
+    h_=Metodos.nuevo(139,"mm")
+    wP_=Metodos.nuevo(0,"point")
+    hP_=Metodos.nuevo(0,"point")
+    nX=Metodos.nuevo(0,nil)
+    nY=Metodos.nuevo(0,nil)
+    nPaginas=""
+    nPliegos=""
+    cuadernillos=false
+
+    resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,nil,nil,nil)
+    
+    assert !resultado.yn, resultado.msg
+  ensure
+    #limpio todo, aunque se caiga
+    if File.dirname($temp)!=nil then
+      `rm -r #{File.dirname($temp)}`
+    end   
+  end
+
 end
