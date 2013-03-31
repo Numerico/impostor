@@ -359,7 +359,7 @@ class PreguntaTodasPag < Pregunta
     @ok=true
   end
 end
-#
+#when imposing in booklets & last group of them can be reduced to minimize blank pages
 class PreguntaReducir < Pregunta
   attr_reader :q, :cuadernillosPorCostura, :paginasSobran, :nCuad, :sobranMenos
   def initialize(cuadernillosPorCostura, paginasSobran, nCuad, sobranMenos, q)

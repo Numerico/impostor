@@ -1,6 +1,7 @@
 #
 require 'test/unit'
 require 'imposition'
+require 'pry'
 #
 $entrada=File.dirname(__FILE__)+"/assets/test.pdf"
 $salida="/home/roberto/test.pdf"
@@ -18,13 +19,12 @@ end
 class TestImpostor < Test::Unit::TestCase
   #funcionales
   def siySoloSi(mensajes, esperados)
-
     if esperados.size<mensajes.size then
       return Resultado.new(false,"hay mas mensajes que los que se espera")
     end
     n=0
     esperados.each do |esperado|
-      esta=false
+      esta=false#TODO simple include?
       mensajes.each do |mensaje|
         #mensajes.count(esperado)==1
         if mensaje==esperado then
@@ -340,6 +340,7 @@ class TestImpostor < Test::Unit::TestCase
     #
     respuestas=[]
     respuestas.push([Clases::PreguntaCXC.new(),Metodos.nuevo(2,nil)])
+    respuestas.push([Clases::Pregunta.new(5),false])#PreguntaReducir
     #
     resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,nil,respuestas)
     assert(resultado.yn,resultado.msg)
@@ -379,6 +380,7 @@ class TestImpostor < Test::Unit::TestCase
     #
     respuestas=[]
     respuestas.push([Clases::PreguntaCXC.new(),Metodos.nuevo(2,nil)])
+    respuestas.push([Clases::Pregunta.new(5),false])#PreguntaReducir
     #
     resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,nil,respuestas)
     assert(resultado.yn,resultado.msg)
@@ -388,4 +390,44 @@ class TestImpostor < Test::Unit::TestCase
       `rm -r #{File.dirname($temp)}`
     end
   end
+  
+  def test_nUpBooklets_groups_10
+    Metodos.refresh()
+    #
+    w_=Metodos.nuevo(0,"point")
+    h_=Metodos.nuevo(0,"point")
+    wP_=Metodos.nuevo(0,"point")
+    hP_=Metodos.nuevo(0,"point")
+    nX=Metodos.nuevo(2,nil)
+    nY=Metodos.nuevo(2,nil)
+    nPaginas=""
+    nPliegos=""
+    cuadernillos=true
+    #
+    esperados=[]
+    esperados.push(Clases::Mensaje.new(13))#PreguntacXC
+    esperados.push(Clases::Mensaje.new(1))
+    esperados.push(Clases::Mensaje.new(2))
+    esperados.push(Clases::Mensaje.new(3))
+    esperados.push(Clases::Mensaje.new(4))
+    esperados.push(Clases::Mensaje.new(5))
+    esperados.push(Clases::Mensaje.new(7))
+    esperados.push(Clases::Mensaje.new(6))
+    esperados.push(Clases::Mensaje.new(8))
+    esperados.push(Clases::Mensaje.new(9))
+    esperados.push(Clases::Mensaje.new(14))#MensajeTiempo Booklets
+    #
+    respuestas=[]
+    respuestas.push([Clases::PreguntaCXC.new(),Metodos.nuevo(10,nil)])
+    respuestas.push([Clases::Pregunta.new(5),false])#PreguntaReducir
+    #
+    resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,nil,respuestas)
+    assert(resultado.yn,resultado.msg)
+  ensure
+    #limpio todo, aunque se caiga
+    if File.dirname($temp)!=nil then
+      `rm -r #{File.dirname($temp)}`
+    end
+  end
+
 end

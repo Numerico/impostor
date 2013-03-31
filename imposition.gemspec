@@ -14,6 +14,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'fileutils'
   s.add_runtime_dependency 'i18n'
   s.add_development_dependency 'test/unit'
+  s.add_development_dependency 'pry'
   s.executables << 'impostor'
   s.homepage    = 'http://impostor.herokuapp.com'
 end
