@@ -475,7 +475,7 @@ def self.validacion(impostor, preguntas)
   if impostor.w!=0.point then
     if impostor.wP!=0.point then
       if impostor.nX==0 then
-        impostor.nX=(wP/w).floor
+        impostor.nX=(impostor.wP/impostor.w).floor
         impostor.wP=impostor.wP_["numero"].send(impostor.wP_["unidad"])#operacion alchemist cambia el operando
         if impostor.nX==0 then
           mensajes.push(Clases::MensajeDato.new(3, "horizontal", 5))#error
