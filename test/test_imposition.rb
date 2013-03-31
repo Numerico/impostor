@@ -22,21 +22,12 @@ class TestImpostor < Test::Unit::TestCase
     if esperados.size<mensajes.size then
       return Resultado.new(false,"hay mas mensajes que los que se espera")
     end
-    n=0
     esperados.each do |esperado|
-      esta=false#TODO simple include?
-      mensajes.each do |mensaje|
-        #mensajes.count(esperado)==1
-        if mensaje==esperado then
-          esta=true
-          n+=1
-        end
-      end
-      if !esta then
+      if !mensajes.include?(esperado)
         return Resultado.new(false,"falta mensaje n°"+esperado.id.to_s)
       end
     end
-    if n!=esperados.size then
+    if esperados.count{|e| mensajes.include?(e)}!=esperados.size then
       return Resultado.new(false,"hay mas iguales que los que se espera")
     end
     return Resultado.new(true,nil)
