@@ -22,10 +22,8 @@ class TestImpostor < Test::Unit::TestCase
     if esperados.size<mensajes.size then
       return Resultado.new(false,"hay mas mensajes que los que se espera")
     end
-    esperados.each do |esperado|
-      if !mensajes.include?(esperado)
-        return Resultado.new(false,"falta mensaje n°"+esperado.id.to_s)
-      end
+    esperados.each do |esperado|     
+        return Resultado.new(false,"falta mensaje n°"+esperado.id.to_s) if !mensajes.include?(esperado)
     end
     if esperados.count{|e| mensajes.include?(e)}!=esperados.size then
       return Resultado.new(false,"hay mas iguales que los que se espera")
@@ -208,7 +206,7 @@ class TestImpostor < Test::Unit::TestCase
     esperados.push(Clases::Mensaje.new(7))#no impares
     esperados.push(Clases::Mensaje.new(6))#pliegos
     esperados.push(Clases::Mensaje.new(8))#MensajeVars
-    esperados.push(Clases::Mensaje.new(9))#tiempo cut&Stack
+    #esperados.push(Clases::Mensaje.new(9))#tiempo cut&Stack
     #
     respuestas=[]
     respuestas.push([Clases::PreguntaEscalado.new("verticalmente"),true])#id:2
