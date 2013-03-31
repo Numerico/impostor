@@ -125,7 +125,7 @@ class MensajeDato < Mensaje
 		if tipo=="horizontal" then
 			if level==1 then#info
 				if numero==1 then
-					return I18n.t(:nXCalc)
+					return [15,I18n.t(:nXCalc)]
 				elsif numero==2 then
 					return [2,I18n.t(:wPCalc)]
 				elsif numero==3 then
@@ -137,19 +137,19 @@ class MensajeDato < Mensaje
 				if numero==1 then
 					return [13,I18n.t(:wOnly)]
 				elsif numero==2 then
-					return I18n.t(:wPOnly)
+					return [16,I18n.t(:wPOnly)]
 				elsif numero==3 then
-					return I18n.t(:nXOnly)
+					return [17,I18n.t(:nXOnly)]
 				elsif numero==4 then
-					return I18n.t(:nothingH)
+					return [18,I18n.t(:nothingH)]
 				elsif numero==5 then
-					return I18n.t(:noPageH)
+					return [19,I18n.t(:noPageH)]
 				end
 			end
 		elsif tipo=="vertical" then
 			if level==1 then#info
 				if numero==1 then
-					return I18n.t(:nYCalc)
+					return [20,I18n.t(:nYCalc)]
 				elsif numero==2 then
 					return [4,I18n.t(:hPCalc)]
 				elsif numero==3 then
@@ -161,19 +161,19 @@ class MensajeDato < Mensaje
 				if numero==1 then
 					return [14,I18n.t(:hOnly)]
 				elsif numero==2 then
-					return I18n.t(:hPOnly)
+					return [21,I18n.t(:hPOnly)]
 				elsif numero==3 then
-					return I18n.t(:nYOnly)
+					return [22,I18n.t(:nYOnly)]
 				elsif numero==4 then
-					return I18n.t(:nothingV)
+					return [23,I18n.t(:nothingV)]
 				elsif numero==5 then
-					return I18n.t(:noPageV)
+					return [24,I18n.t(:noPageV)]
 				end
 			end
 		elsif tipo=="paginas" then
 			if level==1 then
 				if numero==1 then
-					return I18n.t(:nPageCalc)
+					return [25,I18n.t(:nPageCalc)]
 				elsif numero==2 then
 					return [6,I18n.t(:nSheetCalc)]
 				elsif numero==3 then
@@ -181,18 +181,18 @@ class MensajeDato < Mensaje
 				end
 			elsif level==3 then
 				if numero==1 then
-					return I18n.t(:nPageXL)
+					return [26,I18n.t(:nPageXL)]
 				else
-					return I18n.t(:noPages)
+					return [27,I18n.t(:noPages)]
 				end
 			end
 		elsif tipo=="pliegos" then
 			if level==1 then
-				return I18n.t(:allSheet, :n=>numero)
+				return [28,I18n.t(:allSheet, :n=>numero)]
 			elsif level==2 then
-				return I18n.t(:sheetXL, :n=>numero)
+				return [29,I18n.t(:sheetXL, :n=>numero)]
 			elsif level==3 then
-				return I18n.t(:sheetXS, :n=>numero)	
+				return [30,I18n.t(:sheetXS, :n=>numero)]	
 			end
 		end
 	
