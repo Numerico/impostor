@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 module Metodos
-
+require 'pry'
 #WORK
 def funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,temp,locale)
   localize(locale)
@@ -475,8 +475,8 @@ def self.validacion(impostor, preguntas)
   if impostor.w!=0.point then
     if impostor.wP!=0.point then
       if impostor.nX==0 then
-        impostor.nX=(impostor.wP/impostor.w).floor
-        impostor.wP=impostor.wP_["numero"].send(impostor.wP_["unidad"])#operacion alchemist cambia el operando
+        impostor.nX=(impostor.wP/(impostor.w.to.send(impostor.wP_['unidad']))).floor
+        impostor.wP=impostor.wP_["numero"].send(impostor.wP_["unidad"])#operacion alchemist cambia el operando       
         if impostor.nX==0 then
           mensajes.push(Clases::MensajeDato.new(3, "horizontal", 5))#error
         else
@@ -497,7 +497,7 @@ def self.validacion(impostor, preguntas)
     if impostor.nX!=0 then
       if preguntas["escaladoH"]==nil or !preguntas["escaladoH"].ok then
         preguntas["escaladoH"]=Clases::PreguntaEscalado.new("horizontalmente")
-      else
+      else        
         if preguntas["escaladoH"].yn then
           impostor.w=(impostor.wP.to_f/(impostor.nX*(impostor.cuadernillos ? 2 : 1))).send(impostor.wP_["unidad"])#divido en 2 porque ya lo multiplique
           impostor.w_["numero"]=impostor.w
@@ -522,7 +522,7 @@ def self.validacion(impostor, preguntas)
       end
       impostor.w_["unidad"]=impostor.size["unidad"]
       mensajes.push(Clases::MensajeDato.new(1, "horizontal", 4))#info
-      impostor.nX=(impostor.wP/impostor.w).floor
+      impostor.nX=(impostor.wP/(impostor.w.to.send(impostor.wP_['unidad']))).floor
       impostor.wP=impostor.wP_["numero"].send(impostor.wP_["unidad"])
       if impostor.nX==0 then
         mensajes.push(Clases::MensajeDato.new(3, "horizontal", 5))#error
@@ -549,8 +549,8 @@ def self.validacion(impostor, preguntas)
   if impostor.h!=0.point then
     if impostor.hP!=0.point then
       if impostor.nY==0 then
-        impostor.nY=(impostor.hP/impostor.h).floor
-        impostor.hP=impostor.hP_["numero"].send(impostor.hP_["unidad"])
+        impostor.nY=(impostor.hP/(impostor.h.to.send(impostor.hP_['unidad']))).floor
+        impostor.hP=impostor.hP_["numero"].send(impostor.hP_["unidad"])      
         if impostor.nY==0 then
           mensajes.push(Clases::MensajeDato.new(3, "vertical", 5))#error
         else  
@@ -590,7 +590,7 @@ def self.validacion(impostor, preguntas)
       impostor.h_["numero"]=impostor.h
       impostor.h_["unidad"]=impostor.size["unidad"]
       mensajes.push(Clases::MensajeDato.new(1, "vertical", 4))#info
-      impostor.nY=(impostor.hP/impostor.h).floor
+      impostor.nY=(impostor.hP/(impostor.h.to.send(impostor.hP_['unidad']))).floor
       impostor.hP=impostor.hP_["numero"].send(impostor.hP_["unidad"])
       if impostor.nY==0 then
         mensajes.push(Clases::MensajeDato.new(3, "vertical", 5))#error
@@ -612,18 +612,18 @@ def self.validacion(impostor, preguntas)
   end
   #MEDIDAS
   wPDummy=impostor.wP_["numero"].send(impostor.wP_["unidad"])#bug alchemist
-  hPDummy=impostor.hP_["numero"].send(impostor.hP_["unidad"])
+  hPDummy=impostor.hP_["numero"].send(impostor.hP_["unidad"])  
   if redondear(impostor.nX*impostor.w.to_f) > redondear(impostor.wP.to(impostor.w_["unidad"]).to_f) then
     mensajes.push(Clases::MensajeMedida.new(3, "horizontal", [impostor.nX, impostor.w_, impostor.wP_]))#error
-  elsif impostor.nX>0 and wPDummy -(impostor.nX*impostor.w.to_f).send(impostor.w_["unidad"]) > 1.send("point") then
-    sobra=impostor.wP-(impostor.nX*impostor.w.to_f).send(impostor.w_["unidad"])
+  elsif impostor.nX>0 and impostor.w.to_f!=0 and wPDummy - impostor.w.to(impostor.wP_["unidad"])*impostor.nX > 1.point then
+    sobra=impostor.wP - impostor.w.to(impostor.wP_["unidad"])*impostor.nX
     impostor.wP=impostor.wP_["numero"].send(impostor.wP_["unidad"])
     mensajes.push(Clases::MensajeMedida.new(2, "horizontal", [sobra, impostor.wP_["unidad"]]))#warn
   end
   if redondear(impostor.nY*impostor.h.to_f) > redondear(impostor.hP.to(impostor.h_["unidad"]).to_f) then
     mensajes.push(Clases::MensajeMedida.new(3, "vertical", [impostor.nY, impostor.h_, impostor.hP_]))#error
-  elsif impostor.nY>0 and hPDummy - (impostor.nY*impostor.h.to_f).send(impostor.h_["unidad"]) > 1.send("point") then
-    sobra=impostor.hP-(impostor.nY*impostor.h.to_f).send(impostor.h_["unidad"])
+  elsif impostor.nY>0 and impostor.h.to_f!=0 and hPDummy - impostor.h.to(impostor.hP_["unidad"])*impostor.nY > 1.point then
+    sobra=impostor.hP - impostor.h.to(impostor.hP_["unidad"])*impostor.nY
     impostor.hP=impostor.hP_["numero"].send(impostor.hP_["unidad"])
     mensajes.push(Clases::MensajeMedida.new(2, "vertical", [sobra, impostor.hP_["unidad"]]))#warn
   end

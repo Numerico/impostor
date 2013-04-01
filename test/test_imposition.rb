@@ -20,7 +20,7 @@ class TestImpostor < Test::Unit::TestCase
   #funcionales
   def siySoloSi(mensajes, esperados)
     if esperados.size<mensajes.size then
-      return Resultado.new(false,"hay mas mensajes que los que se espera")
+      return Resultado.new(false,"hay mas mensajes que los que se espera"+mensajes.inspect)
     end
     esperados.each do |esperado|     
         return Resultado.new(false,"falta mensaje n°"+esperado.id.to_s) if !mensajes.include?(esperado)
