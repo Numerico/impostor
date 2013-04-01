@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 module Metodos
-require 'pry'
+
 #WORK
 def funcionar(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,preguntas,temp,locale)
   localize(locale)

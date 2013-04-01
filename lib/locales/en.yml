@@ -1,5 +1,5 @@
 en:
-  welcome: "- Welcome human, let's print a book. says :::impostor::0.9.5::"
+  welcome: "- Welcome human, let's print a book. says :::impostor::0.9.5.5::"
   badunit: "%{input}'s unit is incorrect."
   bookletsq: "order for booklets? (y/n)"
   WnX: "You didn't specify Page width but you specified Sheet width and how many Pages per Sheet"

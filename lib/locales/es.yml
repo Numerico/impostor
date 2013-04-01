@@ -1,5 +1,5 @@
 es:
-  welcome: "- Bienvenido ser humano, leer es volar al centro de los tiempos... \n Dice :::impostor::0.9.5:::"
+  welcome: "- Bienvenido ser humano, leer es volar al centro de los tiempos... \n Dice :::impostor::0.9.5.5:::"
   badunit: "La unidad de %{input} no es correcta."
   bookletsq: "¿imponer en cuadernillos? (y/n)"
   WnX: "No especificó ancho de Página pero sí ancho de Pliego y número de páginas por Pliego"
