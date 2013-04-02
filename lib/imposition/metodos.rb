@@ -469,7 +469,7 @@ def self.validacion(impostor, preguntas)
     impostor.nX=impostor.nX/2
     impostor.w=impostor.w*2
     impostor.w_["numero"]=impostor.w
-    mensajes.push(Clases::MensajeBooklets.new(1, "como imponemos en cuadernillos, tomamos la mitad de paginas horizontalmente y una pagina del doble de ancho"))
+    mensajes.push(Clases::MensajeBooklets.new(1,I18n.t(:halfDouble)))
   end
   #HORIZONTALMENTE
   if impostor.w!=0.point then

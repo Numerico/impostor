@@ -70,3 +70,4 @@ es:
   notafile: "%{entrada} no es un archivo"
   nofile: "no ha especificado archivo a imponer"
   exitnowrite: "el directorio de salida %{salida} no se puede escribir"
+  halfDouble: "como imponemos en cuadernillos, tomamos la mitad de páginas horizontalmente y una página del doble de ancho"

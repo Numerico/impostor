@@ -70,3 +70,4 @@ en:
   notafile: "%{entrada} not a file"
   nofile: "you have specified no file"
   exitnowrite: "output directory %{salida} not writeable"
+  halfDouble: "since we're making booklets, we will have half the number of pages and double their width"

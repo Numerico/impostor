@@ -536,5 +536,40 @@ class TestImpostor < Test::Unit::TestCase
       `rm -r #{File.dirname($temp)}`
     end
   end
+  
+  def test_nUpUnidad_2x2
+    Metodos.refresh()
+    #
+    w_=Metodos.nuevo(0,"point")
+    h_=Metodos.nuevo(0,"point")
+    wP_=Metodos.nuevo(279,"mm")
+    hP_=Metodos.nuevo(216,"mm")
+    nX=Metodos.nuevo(2,nil)
+    nY=Metodos.nuevo(2,nil)
+    nPaginas=""
+    nPliegos=""
+    cuadernillos=false
+    #
+    esperados=[]
+    esperados.push(Clases::Mensaje.new(11))#1, "vertical", 3
+    esperados.push(Clases::Mensaje.new(12))#1, "horizontal", 3
+    esperados.push(Clases::Mensaje.new(5))#1, "paginas", 3
+    esperados.push(Clases::Mensaje.new(7))#MensajeLadoLado
+    esperados.push(Clases::Mensaje.new(6))#1, "paginas", 2
+    esperados.push(Clases::Mensaje.new(8))#MensajeVars
+    esperados.push(Clases::Mensaje.new(9))#MensajeTiempo
+    #
+    respuestas=[]
+    respuestas.push([Clases::PreguntaEscalado.new("horizontalmente"),true])#id:1
+    respuestas.push([Clases::PreguntaEscalado.new("verticalmente"),true])#id:2
+    #
+    resultado=nUp(w_,h_,wP_,hP_,nX,nY,nPaginas,nPliegos,cuadernillos,esperados,nil,respuestas)
+    assert(resultado.yn,resultado.msg)
+  ensure
+    #limpio todo, aunque se caiga
+    if File.dirname($temp)!=nil then
+      `rm -r #{File.dirname($temp)}`
+    end
+  end
 
 end
